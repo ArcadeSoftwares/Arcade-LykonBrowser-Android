@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/logo"
+    android:layout_width="220dp"
     android:layout_height="wrap_content"
-    android:text="ArcadeSoftware"
-    android:textSize="32sp"
-    android:textStyle="bold"
-    android:textColor="#FFFFFF"
-    android:fontFamily="sans-serif-medium"
-    android:letterSpacing="-0.03"
-    android:gravity="center"/>
+    android:layout_gravity="center"
+    android:adjustViewBounds="true"
+    android:src="@drawable/made_by_arcade_softwares"
+    android:contentDescription="@null"/>
