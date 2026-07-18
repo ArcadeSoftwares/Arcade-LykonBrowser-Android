@@ -245,22 +245,17 @@ fun BrowserScreen(
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                AnimatedContent(
-                    targetState = session,
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
-                    },
-                    label = "tab_transition",
-                    modifier = Modifier.fillMaxSize()
-                ) { activeSession ->
-                    Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (currentUrl != "about:home" && !pageError) 1f else 0f }) {
-                        GeckoViewContainer(session = activeSession, modifier = Modifier.fillMaxSize())
-                        
-                        // Loading overlay
-                        if (isLoading) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                                androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                            }
+                // Keep GeckoView in the tree but hide it if not on a web page
+                Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (currentUrl != "about:home" && !pageError) 1f else 0f }) {
+                    com.arcadesoftware.lykonbrowser.browser.engine.GeckoViewContainer(
+                        session = session, 
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    
+                    // Loading overlay
+                    if (isLoading) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                            androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                         }
                     }
                 }

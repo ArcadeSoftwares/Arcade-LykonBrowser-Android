@@ -20,6 +20,7 @@ fun GeckoViewContainer(
         modifier = modifier,
         update = { geckoView ->
             if (geckoView.session != session) {
+                geckoView.releaseSession()
                 geckoView.setSession(session)
             }
         }
