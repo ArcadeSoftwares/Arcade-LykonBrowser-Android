@@ -27,7 +27,7 @@ fun TabManagerOverlay(
     currentMode: BrowserMode,
     tabs: List<String>,
     onModeSwitch: (BrowserMode) -> Unit,
-    onClose: () -> Unit,
+    onClose: (Int) -> Unit,
     onNewTab: () -> Unit
 ) {
     if (!visible) return
@@ -92,25 +92,6 @@ fun TabManagerOverlay(
                         modifier = Modifier.size(24.dp)
                     )
                 }
-
-                // Tor Mode Button
-                Box(
-                    modifier = Modifier
-                        .size(48.dp, 40.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(if (currentMode == BrowserMode.TOR) MaterialTheme.colorScheme.surface else Color.Transparent)
-                        .clickable { 
-                            android.widget.Toast.makeText(context, "Tor Window is coming soon!", android.widget.Toast.LENGTH_SHORT).show()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_tor),
-                        contentDescription = "Tor Tabs",
-                        tint = if (currentMode == BrowserMode.TOR) Color(0xFFB388FF) else onSurfaceVariantColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -144,7 +125,7 @@ fun TabManagerOverlay(
                             .aspectRatio(0.7f)
                             .clip(RoundedCornerShape(20.dp))
                             .background(bgColor)
-                            .clickable { onClose() }
+                            .clickable { onClose(index) }
                     ) {
                         Column(modifier = Modifier.fillMaxSize()) {
                             // Top Bar of the Tab Preview
@@ -201,9 +182,7 @@ fun TabManagerOverlay(
                 .size(56.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .clickable { 
-                    android.widget.Toast.makeText(context, "Multi-tab engine coming soon! For now, please use this active session.", android.widget.Toast.LENGTH_LONG).show()
-                },
+                .clickable { onNewTab() },
             contentAlignment = Alignment.Center
         ) {
             Text("+", fontSize = 28.sp, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Light)

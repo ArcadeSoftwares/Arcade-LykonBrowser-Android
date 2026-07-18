@@ -63,6 +63,7 @@ import com.arcadesoftware.lykonbrowser.browser.state.BrowserViewModel
 import com.arcadesoftware.lykonbrowser.browser.ui.components.AddressBar
 import com.arcadesoftware.lykonbrowser.browser.ui.components.BottomToolbar
 import com.arcadesoftware.lykonbrowser.browser.ui.components.SearchOverlay
+import org.mozilla.geckoview.GeckoSession
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
@@ -76,6 +77,9 @@ enum class BottomSheetType {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+data class TabData(val id: String, val session: GeckoSession, val url: String = "about:home")
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserScreen(
     modifier: Modifier = Modifier,
@@ -84,15 +88,29 @@ fun BrowserScreen(
     val context = LocalContext.current
     val browserMode by viewModel.browserMode.collectAsState()
     
-    val normalSession = remember { GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) }
-    val privateSession = remember { GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) }
-    val torSession = remember { GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) }
+    val normalTabs = remember { androidx.compose.runtime.mutableStateListOf<TabData>() }
+    val privateTabs = remember { androidx.compose.runtime.mutableStateListOf<TabData>() }
+    var activeNormalTabIndex by remember { mutableStateOf(0) }
+    var activePrivateTabIndex by remember { mutableStateOf(0) }
     
-    val session = when (browserMode) {
-        com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL -> normalSession
-        com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE -> privateSession
-        com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR -> torSession
+    // Initialize first tabs
+    LaunchedEffect(Unit) {
+        if (normalTabs.isEmpty()) {
+            normalTabs.add(TabData(java.util.UUID.randomUUID().toString(), GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL)))
+        }
+        if (privateTabs.isEmpty()) {
+            privateTabs.add(TabData(java.util.UUID.randomUUID().toString(), GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)))
+        }
     }
+    
+    if (normalTabs.isEmpty() || privateTabs.isEmpty()) return // Wait for initialization
+
+    val activeTabsList = if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) privateTabs else normalTabs
+    val activeTabIndex = if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) activePrivateTabIndex else activeNormalTabIndex
+    
+    // Safety fallback
+    val safeIndex = activeTabIndex.coerceIn(0, (activeTabsList.size - 1).coerceAtLeast(0))
+    val session = activeTabsList[safeIndex].session
 
     val currentUrl by viewModel.currentUrl.collectAsState()
     val canGoBack by viewModel.canGoBack.collectAsState()
@@ -102,9 +120,9 @@ fun BrowserScreen(
     val searchHistory by viewModel.searchHistory.collectAsState()
     val pageError by viewModel.pageError.collectAsState()
 
-    var activeSheet by remember { mutableStateOf(BottomSheetType.NONE) }
     var showSearchOverlay by remember { mutableStateOf(false) }
     var showTabManager by remember { mutableStateOf(false) }
+    var activeSheet by remember { mutableStateOf(BottomSheetType.NONE) }
     var pendingMode by remember { mutableStateOf<com.arcadesoftware.lykonbrowser.browser.state.BrowserMode?>(null) }
 
     val bottomBarHeight = 48.dp
@@ -112,21 +130,46 @@ fun BrowserScreen(
     var bottomBarOffsetHeightPx by remember { mutableStateOf(0f) }
 
     val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
                 val delta = available.y
                 val newOffset = bottomBarOffsetHeightPx - delta
                 bottomBarOffsetHeightPx = newOffset.coerceIn(0f, bottomBarHeightPx)
-                return Offset.Zero
+                return androidx.compose.ui.geometry.Offset.Zero
             }
         }
     }
 
     LaunchedEffect(session) {
-        session.navigationDelegate = viewModel.navigationDelegate
+        // We wrap the viewModel's navigation delegate to also update our local TabData URL
+        session.navigationDelegate = object : GeckoSession.NavigationDelegate {
+            override fun onLocationChange(session: GeckoSession, url: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>) {
+                viewModel.navigationDelegate.onLocationChange(session, url, perms)
+                url?.let {
+                    if (it != "about:blank" && !it.startsWith("data:")) {
+                        val index = activeTabsList.indexOfFirst { tab -> tab.session == session }
+                        if (index != -1) {
+                            activeTabsList[index] = activeTabsList[index].copy(url = it)
+                        }
+                    }
+                }
+            }
+            override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
+                viewModel.navigationDelegate.onCanGoBack(session, canGoBack)
+            }
+            override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
+                viewModel.navigationDelegate.onCanGoForward(session, canGoForward)
+            }
+            override fun onLoadError(session: GeckoSession, uri: String?, error: org.mozilla.geckoview.WebRequestError): org.mozilla.geckoview.GeckoResult<String>? {
+                return viewModel.navigationDelegate.onLoadError(session, uri, error)
+            }
+        }
         session.progressDelegate = viewModel.progressDelegate
-        // loadUrl("about:home") sets currentUrl = "about:home" and does NOT call session.loadUri
-        viewModel.loadUrl(session, "about:home")
+        
+        // If it's a completely new tab, load about:home
+        if (activeTabsList[safeIndex].url == "about:home") {
+            viewModel.loadUrl(session, "about:home")
+        }
     }
 
     androidx.activity.compose.BackHandler(enabled = showSearchOverlay || showTabManager || activeSheet != BottomSheetType.NONE) {
@@ -217,7 +260,7 @@ fun BrowserScreen(
                 backgroundColor = MaterialTheme.colorScheme.surface,
                 iconColor = MaterialTheme.colorScheme.onSurface,
                 height = 48.dp,
-                tabCount = openTabCount,
+                tabCount = activeTabsList.size,
                 onHomeClick = { viewModel.loadUrl(session, "about:home") },
                 onBookmarkClick = { /* Handle bookmarks click */ },
                 onNewTabClick = { /* Handle new tab */ },
@@ -243,7 +286,7 @@ fun BrowserScreen(
         com.arcadesoftware.lykonbrowser.browser.ui.components.TabManagerOverlay(
             visible = showTabManager,
             currentMode = browserMode,
-            tabs = listOf(currentUrl),
+            tabs = activeTabsList.map { it.url },
             onModeSwitch = { newMode ->
                 if (newMode != browserMode) {
                     viewModel.setBrowserMode(newMode)
@@ -258,9 +301,23 @@ fun BrowserScreen(
                     }
                 }
             },
-            onClose = { showTabManager = false },
+            onClose = { index -> 
+                if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
+                    activePrivateTabIndex = index
+                } else {
+                    activeNormalTabIndex = index
+                }
+                showTabManager = false 
+            },
             onNewTab = { 
-                viewModel.loadUrl(session, "about:home")
+                val newSession = GeckoSessionManager.createSession(context, browserMode)
+                if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
+                    privateTabs.add(TabData(java.util.UUID.randomUUID().toString(), newSession))
+                    activePrivateTabIndex = privateTabs.size - 1
+                } else {
+                    normalTabs.add(TabData(java.util.UUID.randomUUID().toString(), newSession))
+                    activeNormalTabIndex = normalTabs.size - 1
+                }
                 showTabManager = false
             }
         )
