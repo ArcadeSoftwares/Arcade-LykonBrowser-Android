@@ -160,11 +160,14 @@ fun CustomLandingPage(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Bottom tagline
-        Text(
-            text = "Powered by Arcade Software",
-            color = textSecondary.copy(alpha = 0.5f),
-            fontSize = 11.sp
+        // Bottom branding image
+        androidx.compose.foundation.Image(
+            painter = painterResource(id = R.drawable.made_by_arcade_softwares),
+            contentDescription = "Powered by Arcade Software",
+            modifier = Modifier
+                .width(160.dp)
+                .height(40.dp),
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit
         )
         Spacer(modifier = Modifier.height(16.dp))
     }
