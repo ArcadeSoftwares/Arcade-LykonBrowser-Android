@@ -10,9 +10,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.arcadesoftware.lykonbrowser.browser.ui.screens.BrowserScreen
 import com.arcadesoftware.lykonbrowser.ui.theme.LykonbrowserTheme
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {

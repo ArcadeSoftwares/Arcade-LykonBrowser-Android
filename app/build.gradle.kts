@@ -54,4 +54,5 @@ dependencies {
     implementation("org.mozilla.geckoview:geckoview-omni:121.0.20240108143603")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

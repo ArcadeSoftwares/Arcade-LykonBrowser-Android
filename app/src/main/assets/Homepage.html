@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: url('https://source.unsplash.com/random/1920x1080/?nature,landscape') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .search-container {
+            display: flex;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 10px 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"] {
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 1.2rem;
+            width: 100%;
+            outline: none;
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .recent-sites {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .site-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .site-card:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="content">
+        <h1>Welcome</h1>
+        <form class="search-container" id="searchForm">
+            <input type="text" id="searchInput" placeholder="Search the web...">
+        </form>
+        <div class="recent-sites" id="recentSites">
+            <!-- Sites will be populated by JS -->
+        </div>
+    </div>
+
+    <script>
+        // Simple search handler
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value;
+            if(query) {
+                window.location.href = 'https://search.brave.com/search?q=' + encodeURIComponent(query);
+            }
+        });
+
+        // Dummy recent sites logic
+        const dummySites = [
+            { name: 'Google', url: 'https://google.com' },
+            { name: 'Reddit', url: 'https://reddit.com' },
+            { name: 'YouTube', url: 'https://youtube.com' }
+        ];
+
+        const container = document.getElementById('recentSites');
+        dummySites.forEach(site => {
+            const a = document.createElement('a');
+            a.href = site.url;
+            a.className = 'site-card';
+            a.textContent = site.name[0]; // First letter
+            container.appendChild(a);
+        });
+    </script>
+</body>
+</html>

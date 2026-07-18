@@ -22,9 +22,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @Composable
 fun AddressBar(
@@ -42,9 +52,12 @@ fun AddressBar(
     onBackClick: () -> Unit,
     onForwardClick: () -> Unit,
     onUrlClick: () -> Unit,
+    onUrlSubmitted: (String) -> Unit,
     onShieldClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var text by remember(url) { mutableStateOf(url) }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -67,16 +80,21 @@ fun AddressBar(
                 tint = if (canGoForward) iconColor else iconColor.copy(alpha = 0.5f)
             )
         }
-        Text(
-            text = url,
+        BasicTextField(
+            value = text,
+            onValueChange = { text = it },
             modifier = Modifier
                 .weight(1f)
-                .clickable(onClick = onUrlClick)
                 .padding(horizontal = 8.dp),
-            color = textColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontSize = 14.sp
+            textStyle = TextStyle(color = textColor, fontSize = 14.sp),
+            singleLine = true,
+            cursorBrush = SolidColor(textColor),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    onUrlSubmitted(text)
+                }
+            )
         )
         IconButton(onClick = onShieldClick) {
             Box(
