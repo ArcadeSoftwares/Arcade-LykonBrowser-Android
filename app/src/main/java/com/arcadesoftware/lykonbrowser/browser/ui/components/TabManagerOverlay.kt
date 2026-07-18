@@ -30,6 +30,7 @@ fun TabManagerOverlay(
     onNewTab: () -> Unit
 ) {
     if (!visible) return
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Box(
         modifier = Modifier
@@ -91,7 +92,9 @@ fun TabManagerOverlay(
                         .size(48.dp, 40.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(if (currentMode == BrowserMode.TOR) Color(0xFF333333) else Color.Transparent)
-                        .clickable { onModeSwitch(BrowserMode.TOR) },
+                        .clickable { 
+                            android.widget.Toast.makeText(context, "Tor Window is coming soon!", android.widget.Toast.LENGTH_SHORT).show()
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

@@ -83,9 +83,17 @@ fun BrowserScreen(
 ) {
     val context = LocalContext.current
     val browserMode by viewModel.browserMode.collectAsState()
-    val session = remember(browserMode) { 
-        GeckoSessionManager.createSession(context, browserMode) 
+    
+    val normalSession = remember { GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) }
+    val privateSession = remember { GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) }
+    val torSession = remember { GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) }
+    
+    val session = when (browserMode) {
+        com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL -> normalSession
+        com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE -> privateSession
+        com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR -> torSession
     }
+
     val currentUrl by viewModel.currentUrl.collectAsState()
     val canGoBack by viewModel.canGoBack.collectAsState()
     val canGoForward by viewModel.canGoForward.collectAsState()
@@ -343,6 +351,7 @@ private fun SettingsDrawerContent(
     onPrivateClick: () -> Unit = {}, 
     onTorClick: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -408,7 +417,9 @@ private fun SettingsDrawerContent(
                         if (isTorActive) Color(0xFFB388FF) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), 
                         RoundedCornerShape(20.dp)
                     )
-                    .clickable { onTorClick() }
+                    .clickable { 
+                        android.widget.Toast.makeText(context, "Tor Window is coming soon!", android.widget.Toast.LENGTH_SHORT).show()
+                    }
                     .padding(vertical = 18.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
