@@ -296,35 +296,37 @@ private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false) {
         // Private & Tor Windows (Side by Side)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
                     .clickable { }
-                    .padding(16.dp),
+                    .padding(vertical = 18.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_private), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_private), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)) 
                 Spacer(Modifier.width(8.dp))
-                Text("Private", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                Text("Private", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
             }
             
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
                     .clickable { }
-                    .padding(16.dp),
+                    .padding(vertical = 18.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_tor), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_tor), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)) 
                 Spacer(Modifier.width(8.dp))
-                Text("Tor", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                Text("Tor", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
         
         // Grid
         Row(
