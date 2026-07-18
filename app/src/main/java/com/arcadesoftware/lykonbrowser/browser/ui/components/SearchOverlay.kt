@@ -119,12 +119,12 @@ fun SearchOverlay(
                     Row(
                         modifier = Modifier
                             .weight(1f)
-                            .height(48.dp)
+                            .height(40.dp) // Thinner, matches AddressBar 40.dp
                             .background(
                                 MaterialTheme.colorScheme.surfaceVariant,
                                 RoundedCornerShape(12.dp)
                             )
-                            .padding(horizontal = 14.dp),
+                            .padding(horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Shield icon
@@ -132,9 +132,9 @@ fun SearchOverlay(
                             painter = painterResource(id = R.drawable.ic_shield),
                             contentDescription = "Shield",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(16.dp)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         // Editable text field
                         BasicTextField(
                             value = textFieldValue,
@@ -144,7 +144,7 @@ fun SearchOverlay(
                                 .focusRequester(focusRequester),
                             textStyle = TextStyle(
                                 color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 15.sp
+                                fontSize = 13.sp
                             ),
                             singleLine = true,
                             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -162,8 +162,8 @@ fun SearchOverlay(
                                 if (textFieldValue.text.isEmpty()) {
                                     Text(
                                         "Search or type web address",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                                        fontSize = 15.sp
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        fontSize = 13.sp
                                     )
                                 }
                                 innerTextField()
@@ -179,7 +179,7 @@ fun SearchOverlay(
                                     painter = painterResource(id = R.drawable.ic_close),
                                     contentDescription = "Clear",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(14.dp)
                                 )
                             }
                         }

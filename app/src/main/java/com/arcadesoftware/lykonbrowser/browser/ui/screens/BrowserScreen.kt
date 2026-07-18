@@ -136,7 +136,11 @@ fun BrowserScreen(
                     shape = RoundedCornerShape(12.dp),
                     height = 40.dp,
                     onClick = { showSearchOverlay = true },
-                    onSecurityClick = { activeSheet = BottomSheetType.SECURITY },
+                    onSecurityClick = { 
+                        if (currentUrl != "about:home" && currentUrl.isNotEmpty()) {
+                            activeSheet = BottomSheetType.SECURITY 
+                        }
+                    },
                     onShieldClick = { activeSheet = BottomSheetType.SHIELD },
                     modifier = Modifier.align(Alignment.Center)
                 )

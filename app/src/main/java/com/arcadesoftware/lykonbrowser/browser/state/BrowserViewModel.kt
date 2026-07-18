@@ -94,6 +94,11 @@ class BrowserViewModel : ViewModel() {
         
         // Add to search history (avoid duplicates, keep most recent first)
         addToHistory(url)
+        
+        // CRITICAL FIX: Update currentUrl immediately so Compose attaches the GeckoViewContainer.
+        // If we don't do this, GeckoView remains detached when on about:home and ignores loadUri.
+        _currentUrl.value = finalUrl
+        
         session.loadUri(finalUrl)
     }
 

@@ -89,8 +89,8 @@ fun CustomLandingPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color.Black.copy(alpha = 0.35f)) // Glass blur effect equivalent
-                    .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                    .background(Color.White.copy(alpha = 0.15f)) // True frosted glass effect
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
