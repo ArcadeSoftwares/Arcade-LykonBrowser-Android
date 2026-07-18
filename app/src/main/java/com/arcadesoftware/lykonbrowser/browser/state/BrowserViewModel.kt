@@ -26,6 +26,10 @@ class BrowserViewModel : ViewModel() {
     private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
     val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
 
+    // Track if the current page failed to load
+    private val _pageError = MutableStateFlow(false)
+    val pageError: StateFlow<Boolean> = _pageError.asStateFlow()
+
     val navigationDelegate = object : GeckoSession.NavigationDelegate {
         override fun onLocationChange(session: GeckoSession, url: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>) {
             url?.let { 
@@ -47,10 +51,12 @@ class BrowserViewModel : ViewModel() {
     val progressDelegate = object : GeckoSession.ProgressDelegate {
         override fun onPageStart(session: GeckoSession, url: String) {
             _isLoading.value = true
+            _pageError.value = false
         }
 
         override fun onPageStop(session: GeckoSession, success: Boolean) {
             _isLoading.value = false
+            _pageError.value = !success
         }
     }
 

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,6 +39,7 @@ fun AddressBar(
     height: Dp,
     onClick: () -> Unit,
     onSecurityClick: () -> Unit,
+    onShieldClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isHttps = url.startsWith("https://")
@@ -84,8 +86,8 @@ fun AddressBar(
                 )
             } else {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_shield),
-                    contentDescription = "Protection",
+                    painter = painterResource(id = R.drawable.ic_search),
+                    contentDescription = "Search",
                     tint = iconColor,
                     modifier = Modifier.size(20.dp)
                 )
@@ -93,6 +95,7 @@ fun AddressBar(
         }
         
         Spacer(modifier = Modifier.width(10.dp))
+        
         // URL text or placeholder
         Text(
             text = displayUrl,
@@ -101,6 +104,18 @@ fun AddressBar(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
+        )
+        
+        Spacer(modifier = Modifier.width(10.dp))
+        
+        // Shield Icon (Permanently on the right side)
+        Icon(
+            painter = painterResource(id = R.drawable.ic_shield),
+            contentDescription = "Shield",
+            tint = MaterialTheme.colorScheme.primary, // Using primary color to stand out, like Brave
+            modifier = Modifier
+                .size(20.dp)
+                .clickable { onShieldClick() }
         )
     }
 }

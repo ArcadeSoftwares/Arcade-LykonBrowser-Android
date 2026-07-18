@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,6 +50,14 @@ import com.arcadesoftware.lykonbrowser.browser.ui.components.AddressBar
 import com.arcadesoftware.lykonbrowser.browser.ui.components.BottomToolbar
 import com.arcadesoftware.lykonbrowser.browser.ui.components.SearchOverlay
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+
+enum class BottomSheetType {
+    NONE, SETTINGS, SECURITY, SHIELD
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserScreen(
@@ -64,8 +73,9 @@ fun BrowserScreen(
     val openTabCount by viewModel.openTabCount.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val searchHistory by viewModel.searchHistory.collectAsState()
+    val pageError by viewModel.pageError.collectAsState()
 
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var activeSheet by remember { mutableStateOf(BottomSheetType.NONE) }
     var showSearchOverlay by remember { mutableStateOf(false) }
 
     val bottomBarHeight = 48.dp
@@ -113,10 +123,8 @@ fun BrowserScreen(
                     shape = RoundedCornerShape(12.dp),
                     height = 48.dp,
                     onClick = { showSearchOverlay = true },
-                    onSecurityClick = {
-                        // For now, just show the settings bottom sheet, we can expand it later
-                        showBottomSheet = true 
-                    },
+                    onSecurityClick = { activeSheet = BottomSheetType.SECURITY },
+                    onShieldClick = { activeSheet = BottomSheetType.SHIELD },
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -151,6 +159,11 @@ fun BrowserScreen(
             Box(modifier = Modifier.weight(1f)) {
                 if (currentUrl == "about:home") {
                     CustomLandingPage()
+                } else if (pageError) {
+                    CustomErrorPage(
+                        url = currentUrl,
+                        onRetry = { viewModel.loadUrl(session, currentUrl) }
+                    )
                 } else {
                     GeckoViewContainer(
                         session = session,
@@ -170,7 +183,7 @@ fun BrowserScreen(
                 onBookmarkClick = { /* Handle bookmarks click */ },
                 onNewTabClick = { /* Handle new tab */ },
                 onTabsClick = { /* Handle tabs click */ },
-                onMoreClick = { showBottomSheet = true }
+                onMoreClick = { activeSheet = BottomSheetType.SETTINGS }
             )
         }
 
@@ -188,19 +201,84 @@ fun BrowserScreen(
         )
     }
 
-    if (showBottomSheet) {
+    if (activeSheet != BottomSheetType.NONE) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false }
+            onDismissRequest = { activeSheet = BottomSheetType.NONE }
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text("Settings", fontSize = 18.sp, modifier = Modifier.padding(vertical = 8.dp))
-                Text("History", fontSize = 18.sp, modifier = Modifier.padding(vertical = 8.dp))
+                when (activeSheet) {
+                    BottomSheetType.SETTINGS -> {
+                        Text("Settings", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+                        Text("History", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                        Text("Bookmarks", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                        Text("Downloads", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                    BottomSheetType.SECURITY -> {
+                        Text("Site Security", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+                        if (currentUrl.startsWith("https://")) {
+                            Text("Connection is secure", color = Color(0xFF00E676), fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                            Text("Your information (for example, passwords or credit card numbers) is private when it is sent to this site.", fontSize = 14.sp, color = Color.Gray)
+                        } else {
+                            Text("Connection is NOT secure", color = Color.Red, fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                            Text("You should not enter any sensitive information on this site because it could be stolen by attackers.", fontSize = 14.sp, color = Color.Gray)
+                        }
+                    }
+                    BottomSheetType.SHIELD -> {
+                        Text("Shields up for this site", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+                        Text("0 Trackers & ads blocked", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                        Text("Connections upgraded to HTTPS", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                        Text("Block Scripts (disabled)", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                    BottomSheetType.NONE -> {}
+                }
                 Spacer(modifier = Modifier.height(32.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun CustomErrorPage(url: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        androidx.compose.material3.Icon(
+            imageVector = Icons.Filled.Warning,
+            contentDescription = "Error",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Site cannot be reached",
+            fontSize = 22.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Check if there is a typo in $url, or check your internet connection.",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        androidx.compose.material3.Button(
+            onClick = onRetry,
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text("Reload")
         }
     }
 }
