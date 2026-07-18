@@ -67,6 +67,9 @@ import com.arcadesoftware.lykonbrowser.browser.ui.components.SearchOverlay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Delete
 
 enum class BottomSheetType {
     NONE, SETTINGS, SECURITY, SHIELD
@@ -250,123 +253,193 @@ fun BrowserScreen(
             ) {
                 when (activeSheet) {
                     BottomSheetType.SETTINGS -> {
-                        Text(
-                            text = "Settings", 
-                            fontSize = 20.sp, 
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, 
-                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-                        )
-                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                        ListItem(
-                            headlineContent = { Text("History") },
-                            leadingContent = { Icon(Icons.Filled.List, contentDescription = null) },
-                            modifier = Modifier.clickable { }
-                        )
-                        ListItem(
-                            headlineContent = { Text("Bookmarks") },
-                            leadingContent = { Icon(Icons.Filled.Favorite, contentDescription = null) },
-                            modifier = Modifier.clickable { }
-                        )
-                        ListItem(
-                            headlineContent = { Text("App Settings") },
-                            leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null) },
-                            modifier = Modifier.clickable { }
-                        )
+                        SettingsDrawerContent()
                     }
-                    BottomSheetType.SECURITY -> {
-                        val isSecure = currentUrl.startsWith("https://")
-                        val iconColor = if (isSecure) Color(0xFF00E676) else Color(0xFFFF3D00)
-                        
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            // Professional static icon circle (lightweight, zero lag)
-                            Box(
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .background(iconColor.copy(alpha = 0.15f), androidx.compose.foundation.shape.CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = if (isSecure) Icons.Filled.Lock else Icons.Filled.Warning,
-                                    contentDescription = null,
-                                    tint = iconColor,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.height(24.dp))
-                            
-                            Text(
-                                text = if (isSecure) "Connection is Secure" else "Connection Not Secure", 
-                                fontSize = 22.sp, 
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            
-                            Spacer(modifier = Modifier.height(12.dp))
-                            
-                            Text(
-                                text = if (isSecure) "Your information (for example, passwords or credit card numbers) is private when it is sent to this site." 
-                                       else "You should not enter any sensitive information on this site because it could be stolen by attackers.", 
-                                fontSize = 14.sp,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 20.sp,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(24.dp))
-                            
-                            // Domain chip
-                            val domain = currentUrl.removePrefix("https://").removePrefix("http://").substringBefore("/")
-                            Row(
-                                modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Filled.Done, contentDescription = null, tint = iconColor, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(domain.ifEmpty { "Local" }, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                    BottomSheetType.SHIELD -> {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Shields up for this site", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
-                            
-                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.Done, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("0 Trackers & ads blocked", fontSize = 16.sp)
-                            }
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            
-                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.Done, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("Connections upgraded to HTTPS", fontSize = 16.sp)
-                            }
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                            
-                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.List, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("Block Scripts", fontSize = 16.sp)
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text("Disabled", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                    BottomSheetType.SECURITY, BottomSheetType.SHIELD -> {
+                        SecurityDrawerContent(currentUrl)
                     }
                     BottomSheetType.NONE -> {}
                 }
             }
         }
     }
+}
+
+@Composable
+private fun SettingsDrawerContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        // Banner
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .clickable { }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Make Lykon your default", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.height(4.dp))
+                Text("Fast, private, and made for you.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Icon(Icons.Filled.Done, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        }
+        Spacer(Modifier.height(12.dp))
+        
+        // Extensions
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .clickable { }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
+            Spacer(Modifier.width(16.dp))
+            Text("Extensions", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+        }
+        Spacer(Modifier.height(12.dp))
+        
+        // Grid
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SettingsGridItem(Icons.Filled.List, "History", Modifier.weight(1f))
+            SettingsGridItem(Icons.Filled.Favorite, "Bookmarks", Modifier.weight(1f))
+            SettingsGridItem(Icons.Filled.KeyboardArrowDown, "Downloads", Modifier.weight(1f))
+            SettingsGridItem(Icons.Filled.Lock, "Passwords", Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(12.dp))
+        
+        // Sign in
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .clickable { }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text("Sign in", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                Text("Synchronise passwords, bookmarks and more", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        
+        // Settings
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .clickable { }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.width(16.dp))
+            Text("Settings", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+        }
+    }
+}
+
+@Composable
+private fun SettingsGridItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier) {
+    Column(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .clickable { }
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+        Spacer(Modifier.height(8.dp))
+        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+@Composable
+private fun SecurityDrawerContent(currentUrl: String) {
+    val isSecure = currentUrl.startsWith("https://")
+    val domain = currentUrl.removePrefix("https://").removePrefix("http://").substringBefore("/")
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        // Header banner
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(32.dp))
+            }
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text("Lykon is on guard", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.height(4.dp))
+                Text("You're protected. If we spot something, we'll let you know.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 18.sp)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+        
+        // Protection toggle
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Enhanced Tracking Protection", color = Color(0xFFB388FF), fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+                Spacer(Modifier.height(4.dp))
+                Text("If something looks broken on this site, try turning it off.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            androidx.compose.material3.Switch(checked = true, onCheckedChange = {})
+        }
+        Spacer(Modifier.height(16.dp))
+        
+        SecurityDrawerRow(Icons.Filled.Done, "No trackers found")
+        SecurityDrawerRow(if (isSecure) Icons.Filled.Lock else Icons.Filled.Warning, if (isSecure) "Secure connection" else "Connection not secure", if (isSecure) "Verified by Let's Encrypt" else null)
+        SecurityDrawerRow(Icons.Filled.Delete, "Clear cookies and site data")
+        
+        Spacer(Modifier.height(8.dp))
+        Text("Privacy Settings", color = Color(0xFFB388FF), fontSize = 14.sp, modifier = Modifier.padding(horizontal = 8.dp).clickable { })
+        Spacer(Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun SecurityDrawerRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String? = null) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .clickable { }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+        Spacer(Modifier.width(16.dp))
+        Column {
+            Text(title, color = MaterialTheme.colorScheme.onSurface, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+            if (subtitle != null) {
+                Text(subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+    Spacer(Modifier.height(8.dp))
 }
 
 @Composable
