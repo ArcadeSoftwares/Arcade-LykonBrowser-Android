@@ -40,16 +40,15 @@ fun CustomLandingPage(
     val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val accentColor = MaterialTheme.colorScheme.primary
 
-    // Picked once per composition entry (i.e. once per app/session launch onto this screen),
-    // not re-rolled on every recomposition.
-    val wallpaperUrl = remember { randomUnsplashUrl() }
+    // Picked once per composition entry (i.e. once per app/session launch onto this screen)
+    val wallpaperUrl = remember { "https://picsum.photos/1080/1920?random=${Random.nextInt(0, Int.MAX_VALUE)}" }
 
     Box(
         modifier = modifier.fillMaxSize()
     ) {
         // Background Image
         coil.compose.AsyncImage(
-            model = "https://picsum.photos/1080/1920?random=1",
+            model = wallpaperUrl,
             contentDescription = "Background",
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),

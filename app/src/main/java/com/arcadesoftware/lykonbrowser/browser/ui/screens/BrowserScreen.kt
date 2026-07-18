@@ -1,5 +1,18 @@
 package com.arcadesoftware.lykonbrowser.browser.ui.screens
 
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Icon
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -121,7 +134,7 @@ fun BrowserScreen(
                     textColor = MaterialTheme.colorScheme.onSurface,
                     iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     shape = RoundedCornerShape(12.dp),
-                    height = 48.dp,
+                    height = 40.dp,
                     onClick = { showSearchOverlay = true },
                     onSecurityClick = { activeSheet = BottomSheetType.SECURITY },
                     onShieldClick = { activeSheet = BottomSheetType.SHIELD },
@@ -201,6 +214,7 @@ fun BrowserScreen(
         )
     }
 
+
     if (activeSheet != BottomSheetType.NONE) {
         ModalBottomSheet(
             onDismissRequest = { activeSheet = BottomSheetType.NONE }
@@ -208,34 +222,89 @@ fun BrowserScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(bottom = 32.dp)
             ) {
                 when (activeSheet) {
                     BottomSheetType.SETTINGS -> {
-                        Text("Settings", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
-                        Text("History", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
-                        Text("Bookmarks", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
-                        Text("Downloads", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                        Text(
+                            text = "Settings", 
+                            fontSize = 20.sp, 
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, 
+                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                        )
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                        ListItem(
+                            headlineContent = { Text("History") },
+                            leadingContent = { Icon(Icons.Filled.List, contentDescription = null) },
+                            modifier = Modifier.clickable { }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Bookmarks") },
+                            leadingContent = { Icon(Icons.Filled.Favorite, contentDescription = null) },
+                            modifier = Modifier.clickable { }
+                        )
+                        ListItem(
+                            headlineContent = { Text("App Settings") },
+                            leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null) },
+                            modifier = Modifier.clickable { }
+                        )
                     }
                     BottomSheetType.SECURITY -> {
-                        Text("Site Security", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
-                        if (currentUrl.startsWith("https://")) {
-                            Text("Connection is secure", color = Color(0xFF00E676), fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
-                            Text("Your information (for example, passwords or credit card numbers) is private when it is sent to this site.", fontSize = 14.sp, color = Color.Gray)
-                        } else {
-                            Text("Connection is NOT secure", color = Color.Red, fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
-                            Text("You should not enter any sensitive information on this site because it could be stolen by attackers.", fontSize = 14.sp, color = Color.Gray)
+                        val isSecure = currentUrl.startsWith("https://")
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (isSecure) Icons.Filled.Lock else Icons.Filled.Warning,
+                                    contentDescription = null,
+                                    tint = if (isSecure) Color(0xFF00E676) else Color.Red,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = if (isSecure) "Connection is secure" else "Connection is NOT secure", 
+                                    fontSize = 18.sp, 
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                    color = if (isSecure) Color(0xFF00E676) else Color.Red
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = if (isSecure) "Your information (for example, passwords or credit card numbers) is private when it is sent to this site." 
+                                       else "You should not enter any sensitive information on this site because it could be stolen by attackers.", 
+                                fontSize = 14.sp, 
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                     BottomSheetType.SHIELD -> {
-                        Text("Shields up for this site", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
-                        Text("0 Trackers & ads blocked", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
-                        Text("Connections upgraded to HTTPS", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
-                        Text("Block Scripts (disabled)", fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Shields up for this site", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+                            
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Done, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text("0 Trackers & ads blocked", fontSize = 16.sp)
+                            }
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Done, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text("Connections upgraded to HTTPS", fontSize = 16.sp)
+                            }
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                            
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.List, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text("Block Scripts", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.weight(1f))
+                                Text("Disabled", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     }
                     BottomSheetType.NONE -> {}
                 }
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }

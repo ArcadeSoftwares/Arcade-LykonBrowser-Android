@@ -56,7 +56,7 @@ fun AddressBar(
             .height(height)
             .background(backgroundColor, shape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Security Indicator Area (Clickable separately)
@@ -69,44 +69,44 @@ fun AddressBar(
                     imageVector = Icons.Filled.Lock,
                     contentDescription = "Secure",
                     tint = iconColor,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             } else if (isHttp) {
                 Icon(
                     imageVector = Icons.Filled.Warning,
                     contentDescription = "Not Secure",
                     tint = Color.Red,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Not secure",
                     color = Color.Red,
-                    fontSize = 12.sp
+                    fontSize = 11.sp
                 )
             } else {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_search),
                     contentDescription = "Search",
                     tint = iconColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
         
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         
         // URL text or placeholder
         Text(
             text = displayUrl,
-            color = if (url.isEmpty() || url == "about:home") textColor.copy(alpha = 0.4f) else textColor,
-            fontSize = 15.sp,
+            color = if (url.isEmpty() || url == "about:home") textColor.copy(alpha = 0.5f) else textColor,
+            fontSize = 13.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
         
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         
         // Shield Icon (Permanently on the right side)
         Icon(
@@ -114,7 +114,7 @@ fun AddressBar(
             contentDescription = "Shield",
             tint = MaterialTheme.colorScheme.primary, // Using primary color to stand out, like Brave
             modifier = Modifier
-                .size(20.dp)
+                .size(18.dp)
                 .clickable { onShieldClick() }
         )
     }

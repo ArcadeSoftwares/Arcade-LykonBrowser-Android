@@ -82,11 +82,16 @@ class BrowserViewModel : ViewModel() {
             _isLoading.value = false
             return
         }
+        
+        val isLikelyUrl = android.util.Patterns.WEB_URL.matcher(url).matches() || 
+                          (url.contains(".") && !url.contains(" ") && (url.endsWith(".com") || url.endsWith(".in") || url.endsWith(".org") || url.endsWith(".net") || url.endsWith(".io")))
+        
         val finalUrl = when {
             url.startsWith("http://") || url.startsWith("https://") -> url
-            url.contains(".") && !url.contains(" ") -> "https://$url"
+            isLikelyUrl -> "https://$url"
             else -> "https://search.brave.com/search?q=${java.net.URLEncoder.encode(url, "UTF-8")}"
         }
+        
         // Add to search history (avoid duplicates, keep most recent first)
         addToHistory(url)
         session.loadUri(finalUrl)
