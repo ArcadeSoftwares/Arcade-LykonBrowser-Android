@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,11 +26,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arcadesoftware.lykonbrowser.R
+import java.net.URL
 
-/**
- * Simple display-only AddressBar. Tapping it opens the search overlay.
- * Shows: [shield icon] [URL text] — no gear, no android icon.
- */
 @Composable
 fun AddressBar(
     url: String,
@@ -38,8 +37,17 @@ fun AddressBar(
     shape: Shape,
     height: Dp,
     onClick: () -> Unit,
+    onSecurityClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isHttps = url.startsWith("https://")
+    val isHttp = url.startsWith("http://")
+    val displayUrl = if (url.isEmpty() || url == "about:home") {
+        "Search or type web address"
+    } else {
+        url.removePrefix("https://").removePrefix("http://").removePrefix("www.")
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -49,17 +57,45 @@ fun AddressBar(
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Shield icon on the left
-        Icon(
-            painter = painterResource(id = R.drawable.ic_shield),
-            contentDescription = "Protection",
-            tint = iconColor,
-            modifier = Modifier.size(20.dp)
-        )
+        // Security Indicator Area (Clickable separately)
+        Row(
+            modifier = Modifier.clickable { onSecurityClick() },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isHttps) {
+                Icon(
+                    imageVector = Icons.Filled.Lock,
+                    contentDescription = "Secure",
+                    tint = iconColor,
+                    modifier = Modifier.size(18.dp)
+                )
+            } else if (isHttp) {
+                Icon(
+                    imageVector = Icons.Filled.Warning,
+                    contentDescription = "Not Secure",
+                    tint = Color.Red,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Not secure",
+                    color = Color.Red,
+                    fontSize = 12.sp
+                )
+            } else {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_shield),
+                    contentDescription = "Protection",
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        
         Spacer(modifier = Modifier.width(10.dp))
         // URL text or placeholder
         Text(
-            text = if (url.isEmpty() || url == "about:home") "Search or type web address" else url,
+            text = displayUrl,
             color = if (url.isEmpty() || url == "about:home") textColor.copy(alpha = 0.4f) else textColor,
             fontSize = 15.sp,
             maxLines = 1,

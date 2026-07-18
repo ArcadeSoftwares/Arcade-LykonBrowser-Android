@@ -110,9 +110,13 @@ fun BrowserScreen(
                     backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                     textColor = MaterialTheme.colorScheme.onSurface,
                     iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    shape = RoundedCornerShape(26.dp),
+                    shape = RoundedCornerShape(12.dp),
                     height = 48.dp,
                     onClick = { showSearchOverlay = true },
+                    onSecurityClick = {
+                        // For now, just show the settings bottom sheet, we can expand it later
+                        showBottomSheet = true 
+                    },
                     modifier = Modifier.align(Alignment.Center)
                 )
             }

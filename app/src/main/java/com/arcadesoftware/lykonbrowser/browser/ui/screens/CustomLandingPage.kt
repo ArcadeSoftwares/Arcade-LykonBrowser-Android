@@ -27,14 +27,30 @@ fun CustomLandingPage(
     val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val accentColor = MaterialTheme.colorScheme.primary
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(bgColor)
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = modifier.fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        // Background Image
+        coil.compose.AsyncImage(
+            model = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+            contentDescription = "Background",
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        // Dark overlay for readability
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.6f))
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(48.dp))
 
         // App branding — Shield icon + name
         Icon(
@@ -171,6 +187,7 @@ fun CustomLandingPage(
         )
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
 }
 
 @Composable

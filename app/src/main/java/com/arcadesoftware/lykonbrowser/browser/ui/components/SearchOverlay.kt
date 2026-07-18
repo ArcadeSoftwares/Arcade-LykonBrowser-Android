@@ -122,7 +122,7 @@ fun SearchOverlay(
                             .height(48.dp)
                             .background(
                                 MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(26.dp)
+                                RoundedCornerShape(12.dp)
                             )
                             .padding(horizontal = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
