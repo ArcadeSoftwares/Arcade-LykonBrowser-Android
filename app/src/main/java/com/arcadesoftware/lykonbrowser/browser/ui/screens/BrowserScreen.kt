@@ -121,29 +121,27 @@ fun BrowserScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .nestedScroll(nestedScrollConnection)
         ) {
-            // Top Bar Area — AddressBar (display only, tapping opens overlay)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
-            ) {
-                AddressBar(
-                    url = if (currentUrl == "about:home") "" else currentUrl,
-                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                    textColor = MaterialTheme.colorScheme.onSurface,
-                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    shape = RoundedCornerShape(12.dp),
-                    height = 40.dp,
-                    onClick = { showSearchOverlay = true },
-                    onSecurityClick = { 
-                        if (currentUrl != "about:home" && currentUrl.isNotEmpty()) {
-                            activeSheet = BottomSheetType.SECURITY 
-                        }
-                    },
-                    onShieldClick = { activeSheet = BottomSheetType.SHIELD },
-                    modifier = Modifier.align(Alignment.Center)
-                )
+            // Top Bar Area — AddressBar (only show on actual websites)
+            if (currentUrl != "about:home") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 10.dp, vertical = 8.dp)
+                ) {
+                    AddressBar(
+                        url = currentUrl,
+                        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                        textColor = MaterialTheme.colorScheme.onSurface,
+                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        shape = RoundedCornerShape(12.dp),
+                        height = 40.dp,
+                        onClick = { showSearchOverlay = true },
+                        onSecurityClick = { activeSheet = BottomSheetType.SECURITY },
+                        onShieldClick = { activeSheet = BottomSheetType.SHIELD },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
             }
             
             // Gradient Loader
@@ -175,7 +173,10 @@ fun BrowserScreen(
             // Content Area
             Box(modifier = Modifier.weight(1f)) {
                 if (currentUrl == "about:home") {
-                    CustomLandingPage()
+                    CustomLandingPage(
+                        onSearchClick = { showSearchOverlay = true },
+                        onShieldClick = { activeSheet = BottomSheetType.SHIELD }
+                    )
                 } else if (pageError) {
                     CustomErrorPage(
                         url = currentUrl,
@@ -316,7 +317,7 @@ fun BrowserScreen(
                             Spacer(modifier = Modifier.height(24.dp))
                             
                             // Domain chip
-                            val domain = try { java.net.URL(currentUrl).host } catch (e: Exception) { currentUrl.take(20) }
+                            val domain = currentUrl.removePrefix("https://").removePrefix("http://").substringBefore("/")
                             Row(
                                 modifier = Modifier
                                     .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
@@ -325,7 +326,7 @@ fun BrowserScreen(
                             ) {
                                 Icon(Icons.Filled.Done, contentDescription = null, tint = iconColor, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(domain ?: "Local", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(domain.ifEmpty { "Local" }, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
