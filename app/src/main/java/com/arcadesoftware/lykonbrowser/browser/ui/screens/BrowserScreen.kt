@@ -65,6 +65,11 @@ import com.arcadesoftware.lykonbrowser.browser.ui.components.BottomToolbar
 import com.arcadesoftware.lykonbrowser.browser.ui.components.SearchOverlay
 import org.mozilla.geckoview.GeckoSession
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -225,14 +230,22 @@ fun BrowserScreen(
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                // Keep GeckoView in the tree but hide it if not on a web page
-                Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (currentUrl != "about:home" && !pageError) 1f else 0f }) {
-                    GeckoViewContainer(session = session, modifier = Modifier.fillMaxSize())
-                    
-                    // Loading overlay
-                    if (isLoading) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                            androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                AnimatedContent(
+                    targetState = session,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+                    },
+                    label = "tab_transition",
+                    modifier = Modifier.fillMaxSize()
+                ) { activeSession ->
+                    Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (currentUrl != "about:home" && !pageError) 1f else 0f }) {
+                        GeckoViewContainer(session = activeSession, modifier = Modifier.fillMaxSize())
+                        
+                        // Loading overlay
+                        if (isLoading) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                                androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            }
                         }
                     }
                 }
