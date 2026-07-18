@@ -124,7 +124,18 @@ fun TabManagerOverlay(
                 modifier = Modifier.weight(1f)
             ) {
                 items(tabs.size) { index ->
-                    val title = if (tabs[index] == "about:home" || tabs[index].isEmpty()) "New Tab" else tabs[index]
+                    val rawUrl = tabs[index]
+                    val isHome = rawUrl == "about:home" || rawUrl.isEmpty()
+                    
+                    // Extract domain for title
+                    val title = if (isHome) "New Tab" else {
+                        try {
+                            java.net.URL(rawUrl).host.removePrefix("www.")
+                        } catch (e: Exception) {
+                            rawUrl
+                        }
+                    }
+                    
                     val bgColor = if (currentMode == BrowserMode.PRIVATE) Color(0xFF1E1E2E) else if (currentMode == BrowserMode.TOR) Color(0xFF2A1C3D) else MaterialTheme.colorScheme.surfaceVariant
                     
                     Box(
@@ -168,9 +179,13 @@ fun TabManagerOverlay(
                                 )
                             }
                             
-                            // Body of Tab Preview
+                            // Body of Tab Preview (Shows Domain dynamically)
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("Tap to switch", color = onSurfaceColor.copy(alpha = 0.5f), fontSize = 12.sp)
+                                if (isHome) {
+                                    Icon(painterResource(id = R.drawable.ic_home), contentDescription = null, tint = onSurfaceColor.copy(alpha = 0.2f), modifier = Modifier.size(48.dp))
+                                } else {
+                                    Text(title.firstOrNull()?.uppercase() ?: "", color = onSurfaceColor.copy(alpha = 0.2f), fontSize = 64.sp, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
@@ -186,7 +201,9 @@ fun TabManagerOverlay(
                 .size(56.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .clickable { onNewTab() },
+                .clickable { 
+                    android.widget.Toast.makeText(context, "Multi-tab engine coming soon! For now, please use this active session.", android.widget.Toast.LENGTH_LONG).show()
+                },
             contentAlignment = Alignment.Center
         ) {
             Text("+", fontSize = 28.sp, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Light)

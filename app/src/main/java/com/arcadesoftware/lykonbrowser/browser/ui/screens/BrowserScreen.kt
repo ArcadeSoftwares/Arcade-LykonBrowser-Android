@@ -129,6 +129,16 @@ fun BrowserScreen(
         viewModel.loadUrl(session, "about:home")
     }
 
+    androidx.activity.compose.BackHandler(enabled = showSearchOverlay || showTabManager || activeSheet != BottomSheetType.NONE) {
+        if (showSearchOverlay) {
+            showSearchOverlay = false
+        } else if (showTabManager) {
+            showTabManager = false
+        } else if (activeSheet != BottomSheetType.NONE) {
+            activeSheet = BottomSheetType.NONE
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         // Main browser content
         Column(
