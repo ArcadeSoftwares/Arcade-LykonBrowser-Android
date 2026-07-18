@@ -226,7 +226,19 @@ fun BrowserScreen(
                 onHomeClick = { viewModel.loadUrl(session, "about:home") },
                 onBookmarkClick = { /* Handle bookmarks click */ },
                 onNewTabClick = { /* Handle new tab */ },
-                onTabsClick = { /* Handle tabs click */ },
+                onTabsClick = { 
+                    if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
+                        viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)
+                        val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
+                        if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                    } else {
+                        // Switch back to normal and wipe isolated session
+                        val restartIntent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.MainActivity::class.java).apply {
+                            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        }
+                        context.startActivity(restartIntent)
+                    }
+                },
                 onMoreClick = { activeSheet = BottomSheetType.SETTINGS }
             )
         }
@@ -245,10 +257,42 @@ fun BrowserScreen(
         )
     }
 
+    var pendingMode by remember { mutableStateOf<com.arcadesoftware.lykonbrowser.browser.state.BrowserMode?>(null) }
+    if (pendingMode != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pendingMode = null },
+            title = { Text("Close current session?") },
+            text = { Text("Opening this will close your active ${if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) "Private" else "Tor"} session and all its tabs.") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    val modeToSet = pendingMode!!
+                    pendingMode = null
+                    viewModel.setBrowserMode(modeToSet)
+                    
+                    if (modeToSet == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
+                        val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
+                        if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                    } else if (modeToSet == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) {
+                        val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService::class.java)
+                        if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                    }
+                    activeSheet = BottomSheetType.NONE
+                }) {
+                    Text("Close & Switch")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { pendingMode = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     if (activeSheet != BottomSheetType.NONE) {
         ModalBottomSheet(
-            onDismissRequest = { activeSheet = BottomSheetType.NONE }
+            onDismissRequest = { activeSheet = BottomSheetType.NONE },
+            sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
             Column(
                 modifier = Modifier
@@ -258,25 +302,28 @@ fun BrowserScreen(
                 when (activeSheet) {
                     BottomSheetType.SETTINGS -> {
                         SettingsDrawerContent(
+                            currentMode = browserMode,
                             onPrivateClick = {
-                                viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)
-                                val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
-                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                    context.startForegroundService(intent)
+                                if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) return@SettingsDrawerContent
+                                if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) {
+                                    pendingMode = com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE
                                 } else {
-                                    context.startService(intent)
+                                    viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)
+                                    val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
+                                    if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                                    activeSheet = BottomSheetType.NONE
                                 }
-                                activeSheet = BottomSheetType.NONE
                             },
                             onTorClick = {
-                                viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR)
-                                val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService::class.java)
-                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                    context.startForegroundService(intent)
+                                if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) return@SettingsDrawerContent
+                                if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
+                                    pendingMode = com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR
                                 } else {
-                                    context.startService(intent)
+                                    viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR)
+                                    val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService::class.java)
+                                    if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                                    activeSheet = BottomSheetType.NONE
                                 }
-                                activeSheet = BottomSheetType.NONE
                             }
                         )
                     }
@@ -294,7 +341,12 @@ fun BrowserScreen(
 }
 
 @Composable
-private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false, onPrivateClick: () -> Unit = {}, onTorClick: () -> Unit = {}) {
+private fun SettingsDrawerContent(
+    isDefaultBrowser: Boolean = false, 
+    currentMode: com.arcadesoftware.lykonbrowser.browser.state.BrowserMode,
+    onPrivateClick: () -> Unit = {}, 
+    onTorClick: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -324,32 +376,60 @@ private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false, onPrivateCl
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val isPrivateActive = currentMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
+                    .background(
+                        if (isPrivateActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), 
+                        RoundedCornerShape(20.dp)
+                    )
                     .clickable { onPrivateClick() }
                     .padding(vertical = 18.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_private), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)) 
+                Icon(
+                    androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_private), 
+                    contentDescription = null, 
+                    tint = if (isPrivateActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface, 
+                    modifier = Modifier.size(20.dp)
+                ) 
                 Spacer(Modifier.width(8.dp))
-                Text("Private", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+                Text(
+                    "Private", 
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, 
+                    color = if (isPrivateActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface, 
+                    fontSize = 15.sp
+                )
             }
             
+            val isTorActive = currentMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
+                    .background(
+                        if (isTorActive) Color(0xFFB388FF) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), 
+                        RoundedCornerShape(20.dp)
+                    )
                     .clickable { onTorClick() }
                     .padding(vertical = 18.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_tor), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)) 
+                Icon(
+                    androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_tor), 
+                    contentDescription = null, 
+                    tint = if (isTorActive) Color.Black else MaterialTheme.colorScheme.onSurface, 
+                    modifier = Modifier.size(20.dp)
+                ) 
                 Spacer(Modifier.width(8.dp))
-                Text("Tor", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+                Text(
+                    "Tor", 
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, 
+                    color = if (isTorActive) Color.Black else MaterialTheme.colorScheme.onSurface, 
+                    fontSize = 15.sp
+                )
             }
         }
         Spacer(Modifier.height(16.dp))
