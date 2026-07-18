@@ -32,9 +32,19 @@ fun GeckoViewContainer(
         },
         modifier = modifier,
         update = { swipeRefreshLayout ->
-            val view = swipeRefreshLayout.getChildAt(0) as GeckoView
-            if (view.session != session) {
-                view.setSession(session)
+            var geckoView: GeckoView? = null
+            for (i in 0 until swipeRefreshLayout.childCount) {
+                val child = swipeRefreshLayout.getChildAt(i)
+                if (child is GeckoView) {
+                    geckoView = child
+                    break
+                }
+            }
+            
+            geckoView?.let { view ->
+                if (view.session != session) {
+                    view.setSession(session)
+                }
             }
         }
     )
