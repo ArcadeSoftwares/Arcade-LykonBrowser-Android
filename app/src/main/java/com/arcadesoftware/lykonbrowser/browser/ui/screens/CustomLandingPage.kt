@@ -95,74 +95,7 @@ fun CustomLandingPage(
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Privacy stats card
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(cardColor)
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Header
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_shield),
-                        contentDescription = null,
-                        tint = accentColor,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Privacy Stats",
-                        color = textPrimary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Stats row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatItem(
-                        value = "0",
-                        label = "Trackers &\nads blocked",
-                        accentColor = Color(0xFFFF6D00),
-                        labelColor = textSecondary
-                    )
-                    // Vertical divider
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(48.dp)
-                            .background(dividerColor)
-                    )
-                    StatItem(
-                        value = "0 KB",
-                        label = "Data\nsaved",
-                        accentColor = Color(0xFF00B0FF),
-                        labelColor = textSecondary
-                    )
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(48.dp)
-                            .background(dividerColor)
-                    )
-                    StatItem(
-                        value = "0s",
-                        label = "Time\nsaved",
-                        accentColor = Color(0xFF7C4DFF),
-                        labelColor = textSecondary
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
