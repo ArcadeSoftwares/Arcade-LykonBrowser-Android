@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.StarBorder
@@ -25,6 +27,10 @@ fun BottomToolbar(
     iconColor: Color,
     height: Dp,
     tabCount: Int,
+    canGoBack: Boolean = false,
+    canGoForward: Boolean = false,
+    onBackClick: () -> Unit = {},
+    onForwardClick: () -> Unit = {},
     onHomeClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     onTabsClick: () -> Unit,
@@ -39,11 +45,24 @@ fun BottomToolbar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Back navigation
+        IconButton(onClick = onBackClick, enabled = canGoBack) {
+            Icon(
+                Icons.Filled.KeyboardArrowLeft,
+                contentDescription = "Back",
+                tint = if (canGoBack) iconColor else iconColor.copy(alpha = 0.35f)
+            )
+        }
+        // Forward navigation
+        IconButton(onClick = onForwardClick, enabled = canGoForward) {
+            Icon(
+                Icons.Filled.KeyboardArrowRight,
+                contentDescription = "Forward",
+                tint = if (canGoForward) iconColor else iconColor.copy(alpha = 0.35f)
+            )
+        }
         IconButton(onClick = onHomeClick) {
             Icon(Icons.Outlined.Home, contentDescription = "Home", tint = iconColor)
-        }
-        IconButton(onClick = onBookmarksClick) {
-            Icon(Icons.Outlined.StarBorder, contentDescription = "Bookmarks", tint = iconColor)
         }
         IconButton(onClick = onTabsClick) {
             TabCounterBadge(

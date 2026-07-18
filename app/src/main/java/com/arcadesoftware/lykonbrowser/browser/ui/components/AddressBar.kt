@@ -1,18 +1,18 @@
 package com.arcadesoftware.lykonbrowser.browser.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -35,6 +35,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import com.arcadesoftware.lykonbrowser.R
 
 @Composable
 fun AddressBar(
@@ -56,8 +62,11 @@ fun AddressBar(
     onShieldClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var text by remember(url) { mutableStateOf(url) }
-
+    val focusManager = LocalFocusManager.current
+    var textFieldValue by remember(url) { 
+        mutableStateOf(TextFieldValue(text = if (url == "about:home") "" else url))
+    }
+    var isFocused by remember { mutableStateOf(false) }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -66,45 +75,65 @@ fun AddressBar(
             .background(backgroundColor, shape),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick, enabled = canGoBack) {
+        // Left: Tune/settings icon
+        IconButton(onClick = onShieldClick) {
             Icon(
-                Icons.Filled.KeyboardArrowLeft,
-                contentDescription = "Back",
-                tint = if (canGoBack) iconColor else iconColor.copy(alpha = 0.5f)
+                Icons.Filled.Tune,
+                contentDescription = "Site settings",
+                tint = iconColor,
+                modifier = Modifier.size(iconSize * 0.85f)
             )
         }
-        IconButton(onClick = onForwardClick, enabled = canGoForward) {
-            Icon(
-                Icons.Filled.KeyboardArrowRight,
-                contentDescription = "Forward",
-                tint = if (canGoForward) iconColor else iconColor.copy(alpha = 0.5f)
-            )
-        }
+        // Center: URL text field
         BasicTextField(
-            value = text,
-            onValueChange = { text = it },
+            value = textFieldValue,
+            onValueChange = { textFieldValue = it },
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 8.dp),
+                .padding(end = 4.dp)
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused && !isFocused) {
+                        textFieldValue = textFieldValue.copy(selection = TextRange(0, textFieldValue.text.length))
+                    }
+                    isFocused = focusState.isFocused
+                },
             textStyle = TextStyle(color = textColor, fontSize = 14.sp),
             singleLine = true,
             cursorBrush = SolidColor(textColor),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
             keyboardActions = KeyboardActions(
-                onSearch = {
-                    onUrlSubmitted(text)
+                onGo = {
+                    val text = textFieldValue.text.trim()
+                    if (text.isNotEmpty()) {
+                        onUrlSubmitted(text)
+                        focusManager.clearFocus()
+                    }
                 }
-            )
-        )
-        IconButton(onClick = onShieldClick) {
-            Box(
-                modifier = Modifier
-                    .size(iconSize)
-                    .background(iconColor.copy(alpha = shieldBackgroundAlpha), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Filled.Warning, contentDescription = "Shield", tint = iconColor, modifier = Modifier.size(iconSize * 0.66f))
+            ),
+            decorationBox = { innerTextField ->
+                if (textFieldValue.text.isEmpty()) {
+                    Text("Search or type web address", color = textColor.copy(alpha = 0.5f), fontSize = 14.sp)
+                }
+                innerTextField()
             }
+        )
+        // Right: Shield icon
+        IconButton(onClick = { /* Shield/protection info */ }) {
+            Icon(
+                Icons.Filled.Shield,
+                contentDescription = "Protection",
+                tint = iconColor.copy(alpha = 0.7f),
+                modifier = Modifier.size(iconSize * 0.85f)
+            )
+        }
+        // Right: Lykon brand icon
+        IconButton(onClick = { /* Brand action */ }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = "Lykon",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(iconSize)
+            )
         }
     }
 }

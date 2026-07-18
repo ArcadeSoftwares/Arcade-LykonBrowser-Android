@@ -67,7 +67,7 @@ fun BrowserScreen(
 
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val bottomBarHeight = 56.dp
+    val bottomBarHeight = 48.dp
     val bottomBarHeightPx = with(LocalDensity.current) { bottomBarHeight.roundToPx().toFloat() }
     var bottomBarOffsetHeightPx by remember { mutableStateOf(0f) }
 
@@ -85,7 +85,8 @@ fun BrowserScreen(
     LaunchedEffect(session) {
         session.navigationDelegate = viewModel.navigationDelegate
         session.progressDelegate = viewModel.progressDelegate
-        viewModel.loadUrl(session, "file:///android_asset/Homepage.html")
+        // loadUrl("about:home") sets currentUrl = "about:home" and does NOT call session.loadUri
+        viewModel.loadUrl(session, "about:home")
     }
 
     Column(
@@ -99,16 +100,16 @@ fun BrowserScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(top = 16.dp, bottom = 8.dp)
+                .padding(top = 8.dp, bottom = 4.dp)
         ) {
             AddressBar(
-                url = if (currentUrl == "file:///android_asset/Homepage.html") "" else currentUrl,
+                url = if (currentUrl == "about:home") "" else currentUrl,
                 backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                 textColor = MaterialTheme.colorScheme.onSurface,
                 iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 shape = RoundedCornerShape(26.dp), // Capsule
-                height = 52.dp,
-                horizontalPadding = 12.dp,
+                height = 48.dp,
+                horizontalPadding = 10.dp,
                 iconSize = 24.dp,
                 shieldBackgroundAlpha = 0.1f,
                 canGoBack = canGoBack,
@@ -140,7 +141,7 @@ fun BrowserScreen(
                     .height(2.dp)
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(Color.Green, Color.Yellow, Color.Red, Color.Green),
+                            colors = listOf(Color(0xFF00FFFF), Color(0xFF8A2BE2), Color(0xFFFF00FF), Color(0xFF00FFFF)),
                             startX = offset - 1000f,
                             endX = offset
                         )
@@ -150,10 +151,14 @@ fun BrowserScreen(
         
         // Content Area
         Box(modifier = Modifier.weight(1f)) {
-            GeckoViewContainer(
-                session = session,
-                modifier = Modifier.fillMaxSize()
-            )
+            if (currentUrl == "about:home") {
+                CustomLandingPage()
+            } else {
+                GeckoViewContainer(
+                    session = session,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
         
         // Bottom Toolbar
@@ -161,9 +166,13 @@ fun BrowserScreen(
             modifier = Modifier.offset { IntOffset(x = 0, y = bottomBarOffsetHeightPx.roundToInt()) },
             backgroundColor = MaterialTheme.colorScheme.surface,
             iconColor = MaterialTheme.colorScheme.onSurface,
-            height = 56.dp,
+            height = 48.dp,
             tabCount = openTabCount,
-            onHomeClick = { viewModel.loadUrl(session, "file:///android_asset/Homepage.html") },
+            canGoBack = canGoBack,
+            canGoForward = canGoForward,
+            onBackClick = { viewModel.goBack(session) },
+            onForwardClick = { viewModel.goForward(session) },
+            onHomeClick = { viewModel.loadUrl(session, "about:home") },
             onBookmarksClick = { /* Handle bookmarks click */ },
             onTabsClick = { /* Handle tabs click */ },
             onMenuClick = { showBottomSheet = true }

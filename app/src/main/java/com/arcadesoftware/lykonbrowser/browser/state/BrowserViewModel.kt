@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.mozilla.geckoview.GeckoSession
 
 class BrowserViewModel : ViewModel() {
-    private val _currentUrl = MutableStateFlow("https://www.google.com")
+    private val _currentUrl = MutableStateFlow("about:home")
     val currentUrl: StateFlow<String> = _currentUrl.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
@@ -24,7 +24,11 @@ class BrowserViewModel : ViewModel() {
 
     val navigationDelegate = object : GeckoSession.NavigationDelegate {
         override fun onLocationChange(session: GeckoSession, url: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>) {
-            url?.let { _currentUrl.value = it }
+            url?.let { 
+                if (it != "about:blank") {
+                    _currentUrl.value = it 
+                }
+            }
         }
 
         override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
@@ -47,7 +51,20 @@ class BrowserViewModel : ViewModel() {
     }
 
     fun loadUrl(session: GeckoSession, url: String) {
-        session.loadUri(url)
+        if (url == "about:home") {
+            // Show custom landing page without loading a URI in GeckoView
+            _currentUrl.value = "about:home"
+            _canGoBack.value = false
+            _canGoForward.value = false
+            _isLoading.value = false
+            return
+        }
+        val finalUrl = when {
+            url.startsWith("http://") || url.startsWith("https://") -> url
+            url.contains(".") && !url.contains(" ") -> "https://$url"
+            else -> "https://search.brave.com/search?q=${java.net.URLEncoder.encode(url, "UTF-8")}"
+        }
+        session.loadUri(finalUrl)
     }
     
     fun goBack(session: GeckoSession) {
