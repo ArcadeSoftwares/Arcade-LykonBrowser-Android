@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arcadesoftware.lykonbrowser.R
 import androidx.compose.foundation.border
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 
 // ...
@@ -84,16 +85,37 @@ fun CustomLandingPage(
             // Push the privacy card to the bottom
             Spacer(modifier = Modifier.weight(1f))
 
-            // Glassmorphism Privacy Stats Card
-            Column(
+            // Blur Morph Privacy Stats Card
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Color.White.copy(alpha = 0.15f)) // True frosted glass effect
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
                     .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                contentAlignment = Alignment.Center
             ) {
+                // Blur morph aura behind the card
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .offset(y = 8.dp)
+                        .blur(32.dp) // The blur morph effect!
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFF4FC3F7), Color(0xFF7C4DFF))
+                            ),
+                            RoundedCornerShape(24.dp)
+                        )
+                )
+
+                // The actual card content
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color.White.copy(alpha = 0.1f)) // Extremely subtle frosting over the aurora
+                        .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                 // Header
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -153,6 +175,7 @@ fun CustomLandingPage(
                     )
                 }
             }
+            } // Close the Box we added for the blur morph!
 
             Spacer(modifier = Modifier.height(32.dp))
         }

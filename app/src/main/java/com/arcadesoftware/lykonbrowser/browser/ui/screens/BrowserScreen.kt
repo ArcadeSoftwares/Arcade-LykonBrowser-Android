@@ -255,29 +255,78 @@ fun BrowserScreen(
                     }
                     BottomSheetType.SECURITY -> {
                         val isSecure = currentUrl.startsWith("https://")
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                        val infiniteTransition = rememberInfiniteTransition()
+                        val scale by infiniteTransition.animateFloat(
+                            initialValue = 1f,
+                            targetValue = 1.2f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1200, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse
+                            )
+                        )
+                        val iconColor = if (isSecure) Color(0xFF00E676) else Color(0xFFFF3D00)
+                        
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                // Glowing pulsing ring
+                                Box(
+                                    modifier = Modifier
+                                        .size(80.dp * scale)
+                                        .background(iconColor.copy(alpha = 0.15f), androidx.compose.foundation.shape.CircleShape)
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .background(iconColor.copy(alpha = 0.25f), androidx.compose.foundation.shape.CircleShape)
+                                )
                                 Icon(
                                     imageVector = if (isSecure) Icons.Filled.Lock else Icons.Filled.Warning,
                                     contentDescription = null,
-                                    tint = if (isSecure) Color(0xFF00E676) else Color.Red,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = if (isSecure) "Connection is secure" else "Connection is NOT secure", 
-                                    fontSize = 18.sp, 
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                    color = if (isSecure) Color(0xFF00E676) else Color.Red
+                                    tint = iconColor,
+                                    modifier = Modifier.size(32.dp)
                                 )
                             }
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            Text(
+                                text = if (isSecure) "Connection is Secure" else "Connection Not Secure", 
+                                fontSize = 22.sp, 
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            
                             Spacer(modifier = Modifier.height(12.dp))
+                            
                             Text(
                                 text = if (isSecure) "Your information (for example, passwords or credit card numbers) is private when it is sent to this site." 
                                        else "You should not enter any sensitive information on this site because it could be stolen by attackers.", 
-                                fontSize = 14.sp, 
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                fontSize = 14.sp,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 20.sp,
+                                modifier = Modifier.padding(horizontal = 16.dp)
                             )
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            // Domain chip
+                            val domain = try { java.net.URL(currentUrl).host } catch (e: Exception) { currentUrl.take(20) }
+                            Row(
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Filled.Done, contentDescription = null, tint = iconColor, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(domain ?: "Local", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                     BottomSheetType.SHIELD -> {
