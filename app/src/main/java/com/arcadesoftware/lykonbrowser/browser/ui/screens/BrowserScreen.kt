@@ -202,7 +202,11 @@ fun BrowserScreen(
                 if (currentUrl == "about:home") {
                     CustomLandingPage(
                         searchHistory = searchHistory,
-                        onHistoryItemClick = { query -> viewModel.loadUrl(session, query) }
+                        mode = browserMode,
+                        onHistoryItemClick = { url -> 
+                            showSearchOverlay = false
+                            viewModel.loadUrl(session, url) 
+                        }
                     )
                 } else if (pageError) {
                     CustomErrorPage(

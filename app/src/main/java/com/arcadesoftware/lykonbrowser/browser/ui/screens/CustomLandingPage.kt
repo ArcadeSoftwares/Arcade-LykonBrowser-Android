@@ -39,6 +39,7 @@ private val fallbackSites = listOf(
 @Composable
 fun CustomLandingPage(
     searchHistory: List<String>,
+    mode: com.arcadesoftware.lykonbrowser.browser.state.BrowserMode,
     onHistoryItemClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -58,14 +59,19 @@ fun CustomLandingPage(
     Box(
         modifier = modifier.fillMaxSize()
     ) {
-        AsyncImage(
-            model = wallpaperUrl,
-            contentDescription = "Background",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-            error = null,
-            placeholder = null
-        )
+        if (mode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
+            AsyncImage(
+                model = wallpaperUrl,
+                contentDescription = "Background",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                error = null,
+                placeholder = null
+            )
+        } else {
+            // Dark solid background for Private/Tor
+            Box(modifier = Modifier.fillMaxSize().background(Color(0xFF121212)))
+        }
 
         Column(
             modifier = Modifier
@@ -76,94 +82,142 @@ fun CustomLandingPage(
             // Push content down slightly
             Spacer(modifier = Modifier.height(100.dp))
 
-            // Privacy Stats Card matching the image design but without the blur morph
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // The Card (Black background, higher alpha)
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color.Black.copy(alpha = 0.5f)) // increased alpha
-                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-                        .padding(20.dp)
+            if (mode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
+                // Privacy Stats Card matching the image design but without the blur morph
+                Box(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Header
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                    // The Card (Black background, higher alpha)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(Color.Black.copy(alpha = 0.5f)) // increased alpha
+                            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                            .padding(20.dp)
                     ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_shield),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Privacy Stats",
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        // Eye cross icon placeholder
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_close),
-                            contentDescription = "Hide",
-                            tint = Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Stats Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        StatItem(label = "Trackers & Ads\nBlocked", value = "3,452", valueColor = Color(0xFFFF5722))
-                        StatItem(label = "Est. Data\nSaved", value = "1.2 GB", valueColor = Color(0xFF29B6F6))
-                        StatItem(label = "Est. Time\nSaved", value = "2h 47m", valueColor = Color.White)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Shortcuts Row (User search sites / most visited)
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(displaySites) { site ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.3f))
-                                .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape)
-                                .clickable { onHistoryItemClick(site) },
-                            contentAlignment = Alignment.Center
+                        // Header
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            AsyncImage(
-                                model = "https://www.google.com/s2/favicons?domain=${site}&sz=128",
-                                contentDescription = site,
-                                modifier = Modifier.size(28.dp),
-                                contentScale = ContentScale.Fit
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_shield),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Privacy Stats",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            // Eye cross icon placeholder
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_close),
+                                contentDescription = "Hide",
+                                tint = Color.White.copy(alpha = 0.6f),
+                                modifier = Modifier.size(16.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = site.take(10) + if (site.length > 10) "..." else "",
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 11.sp
-                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Stats Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            StatItem(label = "Trackers & Ads\nBlocked", value = "3,452", valueColor = Color(0xFFFF5722))
+                            StatItem(label = "Est. Data\nSaved", value = "1.2 GB", valueColor = Color(0xFF29B6F6))
+                            StatItem(label = "Est. Time\nSaved", value = "2h 47m", valueColor = Color.White)
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Shortcuts Row (User search sites / most visited)
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(displaySites) { site ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.3f))
+                                    .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape)
+                                    .clickable { onHistoryItemClick(site) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AsyncImage(
+                                    model = "https://www.google.com/s2/favicons?domain=${site}&sz=128",
+                                    contentDescription = site,
+                                    modifier = Modifier.size(28.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = site.take(10) + if (site.length > 10) "..." else "",
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+            } else if (mode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
+                // Private Browsing UI
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_private),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(72.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "You've gone Incognito",
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Lykon won't save your browsing history, cookies, site data, or information entered in forms.",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+            } else if (mode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) {
+                // Tor UI
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_tor),
+                    contentDescription = null,
+                    tint = Color(0xFFB388FF), // Purple onion color
+                    modifier = Modifier.size(80.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Tor Connection Active",
+                    color = Color(0xFFB388FF),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Your traffic is being routed over the Tor network. Your location and IP address are hidden.",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
             }
         }
     }
