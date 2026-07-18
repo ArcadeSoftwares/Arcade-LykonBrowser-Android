@@ -165,8 +165,8 @@ fun CustomLandingPage(
             painter = painterResource(id = R.drawable.made_by_arcade_softwares),
             contentDescription = "Powered by Arcade Software",
             modifier = Modifier
-                .width(160.dp)
-                .height(40.dp),
+                .width(120.dp)
+                .height(120.dp),
             contentScale = androidx.compose.ui.layout.ContentScale.Fit
         )
         Spacer(modifier = Modifier.height(16.dp))
