@@ -11,7 +11,16 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
+enum class BrowserMode { NORMAL, PRIVATE, TOR }
+
 class BrowserViewModel : ViewModel() {
+    private val _browserMode = MutableStateFlow(BrowserMode.NORMAL)
+    val browserMode: StateFlow<BrowserMode> = _browserMode.asStateFlow()
+
+    fun setBrowserMode(mode: BrowserMode) {
+        _browserMode.value = mode
+    }
+
     private val _currentUrl = MutableStateFlow("about:home")
     val currentUrl: StateFlow<String> = _currentUrl.asStateFlow()
 

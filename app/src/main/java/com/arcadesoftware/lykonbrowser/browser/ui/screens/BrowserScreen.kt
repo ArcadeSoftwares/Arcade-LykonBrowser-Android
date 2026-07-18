@@ -251,7 +251,28 @@ fun BrowserScreen(
             ) {
                 when (activeSheet) {
                     BottomSheetType.SETTINGS -> {
-                        SettingsDrawerContent()
+                        SettingsDrawerContent(
+                            onPrivateClick = {
+                                viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)
+                                val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                    context.startForegroundService(intent)
+                                } else {
+                                    context.startService(intent)
+                                }
+                                activeSheet = BottomSheetType.NONE
+                            },
+                            onTorClick = {
+                                viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR)
+                                val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService::class.java)
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                    context.startForegroundService(intent)
+                                } else {
+                                    context.startService(intent)
+                                }
+                                activeSheet = BottomSheetType.NONE
+                            }
+                        )
                     }
                     BottomSheetType.SECURITY -> {
                         SecurityDrawerContent(currentUrl)
@@ -267,7 +288,7 @@ fun BrowserScreen(
 }
 
 @Composable
-private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false) {
+private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false, onPrivateClick: () -> Unit = {}, onTorClick: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -278,15 +299,14 @@ private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                    .clickable { }
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp))
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Make Lykon your default", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Make Lykon default", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Spacer(Modifier.height(4.dp))
-                    Text("Fast, private, and made for you.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("For faster, safer browsing", fontSize = 12.sp, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
                 }
                 Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             }
@@ -302,7 +322,7 @@ private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false) {
                 modifier = Modifier
                     .weight(1f)
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                    .clickable { }
+                    .clickable { onPrivateClick() }
                     .padding(vertical = 18.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
@@ -316,7 +336,7 @@ private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false) {
                 modifier = Modifier
                     .weight(1f)
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                    .clickable { }
+                    .clickable { onTorClick() }
                     .padding(vertical = 18.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
