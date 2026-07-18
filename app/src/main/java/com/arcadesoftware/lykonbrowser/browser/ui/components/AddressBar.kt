@@ -37,8 +37,6 @@ fun AddressBar(
     iconColor: Color,
     shape: Shape,
     height: Dp,
-    horizontalPadding: Dp,
-    iconSize: Dp,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -46,29 +44,27 @@ fun AddressBar(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .padding(horizontal = horizontalPadding)
             .background(backgroundColor, shape)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.width(12.dp))
         // Shield icon on the left
         Icon(
             painter = painterResource(id = R.drawable.ic_shield),
             contentDescription = "Protection",
             tint = iconColor,
-            modifier = Modifier.size(iconSize * 0.85f)
+            modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
         // URL text or placeholder
         Text(
             text = if (url.isEmpty() || url == "about:home") "Search or type web address" else url,
-            color = if (url.isEmpty() || url == "about:home") textColor.copy(alpha = 0.5f) else textColor,
-            fontSize = 14.sp,
+            color = if (url.isEmpty() || url == "about:home") textColor.copy(alpha = 0.4f) else textColor,
+            fontSize = 15.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
-        Spacer(modifier = Modifier.width(12.dp))
     }
 }

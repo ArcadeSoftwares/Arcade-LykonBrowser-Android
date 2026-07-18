@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -17,23 +16,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arcadesoftware.lykonbrowser.R
 
-// Lykon brand colors
-private val LykonCyan = Color(0xFF00E5FF)
-private val LykonPurple = Color(0xFF7C4DFF)
-private val LykonDarkBg = Color(0xFF0F0F14)
-private val LykonCardBg = Color(0xFF1A1A24)
-private val LykonCardBorder = Color(0xFF2A2A3A)
-private val LykonTextPrimary = Color(0xFFE8E8EC)
-private val LykonTextSecondary = Color(0xFF8888A0)
-
 @Composable
 fun CustomLandingPage(
     modifier: Modifier = Modifier
 ) {
+    val bgColor = MaterialTheme.colorScheme.background
+    val cardColor = MaterialTheme.colorScheme.surfaceVariant
+    val dividerColor = MaterialTheme.colorScheme.outlineVariant
+    val textPrimary = MaterialTheme.colorScheme.onBackground
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val accentColor = MaterialTheme.colorScheme.primary
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(LykonDarkBg)
+            .background(bgColor)
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -43,19 +40,19 @@ fun CustomLandingPage(
         Icon(
             painter = painterResource(id = R.drawable.ic_shield),
             contentDescription = "Lykon",
-            tint = LykonCyan,
+            tint = accentColor,
             modifier = Modifier.size(48.dp)
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = "Lykon Browser",
-            color = LykonTextPrimary,
+            color = textPrimary,
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold
         )
         Text(
             text = "Private. Fast. Secure.",
-            color = LykonTextSecondary,
+            color = textSecondary,
             fontSize = 13.sp,
             fontWeight = FontWeight.Normal
         )
@@ -67,7 +64,7 @@ fun CustomLandingPage(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(LykonCardBg)
+                .background(cardColor)
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -78,13 +75,13 @@ fun CustomLandingPage(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_shield),
                     contentDescription = null,
-                    tint = LykonCyan,
+                    tint = accentColor,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "Privacy Stats",
-                    color = LykonTextPrimary,
+                    color = textPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -100,30 +97,33 @@ fun CustomLandingPage(
                 StatItem(
                     value = "0",
                     label = "Trackers &\nads blocked",
-                    accentColor = Color(0xFFFF6D00)
+                    accentColor = Color(0xFFFF6D00),
+                    labelColor = textSecondary
                 )
-                // Subtle vertical divider
+                // Vertical divider
                 Box(
                     modifier = Modifier
                         .width(1.dp)
                         .height(48.dp)
-                        .background(LykonCardBorder)
+                        .background(dividerColor)
                 )
                 StatItem(
                     value = "0 KB",
                     label = "Data\nsaved",
-                    accentColor = LykonCyan
+                    accentColor = Color(0xFF00B0FF),
+                    labelColor = textSecondary
                 )
                 Box(
                     modifier = Modifier
                         .width(1.dp)
                         .height(48.dp)
-                        .background(LykonCardBorder)
+                        .background(dividerColor)
                 )
                 StatItem(
                     value = "0s",
                     label = "Time\nsaved",
-                    accentColor = LykonPurple
+                    accentColor = Color(0xFF7C4DFF),
+                    labelColor = textSecondary
                 )
             }
         }
@@ -138,16 +138,22 @@ fun CustomLandingPage(
             QuickShortcut(
                 icon = R.drawable.ic_bookmark,
                 label = "Bookmarks",
+                cardColor = cardColor,
+                iconColor = textSecondary,
                 modifier = Modifier.weight(1f)
             )
             QuickShortcut(
                 icon = R.drawable.ic_tabs,
                 label = "Tabs",
+                cardColor = cardColor,
+                iconColor = textSecondary,
                 modifier = Modifier.weight(1f)
             )
             QuickShortcut(
                 icon = R.drawable.ic_more,
                 label = "Settings",
+                cardColor = cardColor,
+                iconColor = textSecondary,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -157,7 +163,7 @@ fun CustomLandingPage(
         // Bottom tagline
         Text(
             text = "Powered by Arcade Software",
-            color = LykonTextSecondary.copy(alpha = 0.5f),
+            color = textSecondary.copy(alpha = 0.5f),
             fontSize = 11.sp
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -168,7 +174,8 @@ fun CustomLandingPage(
 private fun StatItem(
     value: String,
     label: String,
-    accentColor: Color
+    accentColor: Color,
+    labelColor: Color
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
@@ -180,7 +187,7 @@ private fun StatItem(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            color = LykonTextSecondary,
+            color = labelColor,
             fontSize = 11.sp,
             textAlign = TextAlign.Center,
             lineHeight = 14.sp
@@ -192,25 +199,27 @@ private fun StatItem(
 private fun QuickShortcut(
     icon: Int,
     label: String,
+    cardColor: Color,
+    iconColor: Color,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(LykonCardBg)
+            .background(cardColor)
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             painter = painterResource(id = icon),
             contentDescription = label,
-            tint = LykonTextSecondary,
+            tint = iconColor,
             modifier = Modifier.size(22.dp)
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = label,
-            color = LykonTextSecondary,
+            color = iconColor,
             fontSize = 11.sp
         )
     }

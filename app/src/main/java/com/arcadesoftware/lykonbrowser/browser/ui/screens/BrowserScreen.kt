@@ -103,7 +103,7 @@ fun BrowserScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
-                    .padding(top = 8.dp, bottom = 4.dp)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
             ) {
                 AddressBar(
                     url = if (currentUrl == "about:home") "" else currentUrl,
@@ -112,8 +112,6 @@ fun BrowserScreen(
                     iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     shape = RoundedCornerShape(26.dp),
                     height = 48.dp,
-                    horizontalPadding = 10.dp,
-                    iconSize = 24.dp,
                     onClick = { showSearchOverlay = true },
                     modifier = Modifier.align(Alignment.Center)
                 )
