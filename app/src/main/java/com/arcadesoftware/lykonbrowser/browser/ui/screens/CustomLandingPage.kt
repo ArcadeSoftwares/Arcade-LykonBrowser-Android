@@ -13,9 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -25,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.arcadesoftware.lykonbrowser.R
-import com.arcadesoftware.lykonbrowser.browser.ui.components.AddressBar
 
 private val envImages = listOf(
     "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=1080&auto=format&fit=crop", 
@@ -34,25 +31,27 @@ private val envImages = listOf(
     "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1080&auto=format&fit=crop"
 )
 
-data class ShortcutItem(val name: String, val color: Color, val iconId: Int? = null)
-
-private val shortcuts = listOf(
-    ShortcutItem("Reddit", Color(0xFFFF4500)),
-    ShortcutItem("YouTube", Color(0xFFFF0000)),
-    ShortcutItem("X", Color(0xFF000000)),
-    ShortcutItem("GitHub", Color(0xFF24292E)),
-    ShortcutItem("Notion", Color(0xFF000000)),
-    ShortcutItem("Pinterest", Color(0xFFE60023)),
-    ShortcutItem("Medium", Color(0xFF000000))
+// Define some standard fallback "Most Visited" sites if history is empty
+private val fallbackSites = listOf(
+    "google.com", "wikipedia.org", "amazon.com", "reddit.com", "youtube.com"
 )
 
 @Composable
 fun CustomLandingPage(
-    onSearchClick: () -> Unit,
-    onShieldClick: () -> Unit,
+    searchHistory: List<String>,
+    onHistoryItemClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val wallpaperUrl = remember { envImages.random() }
+    
+    // Extract domains/queries from history, or use fallback
+    val displaySites = remember(searchHistory) {
+        val sites = searchHistory.map { 
+            it.removePrefix("https://").removePrefix("http://").removePrefix("www.").substringBefore("/")
+        }.distinct().take(8)
+        
+        if (sites.isEmpty()) fallbackSites else sites
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -72,51 +71,20 @@ fun CustomLandingPage(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(64.dp))
+            // Push content down slightly
+            Spacer(modifier = Modifier.height(100.dp))
 
-            // Fake floating AddressBar
-            AddressBar(
-                url = "about:home",
-                backgroundColor = Color.Black.copy(alpha = 0.4f),
-                textColor = Color.White,
-                iconColor = Color.White.copy(alpha = 0.8f),
-                shape = RoundedCornerShape(24.dp),
-                height = 56.dp,
-                onClick = onSearchClick,
-                onSecurityClick = {}, // Handled by search overlay
-                onShieldClick = onShieldClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Privacy Stats Card matching the image design
+            // Privacy Stats Card matching the image design but without the blur morph
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Blur Morph aura
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .offset(y = 12.dp)
-                        .blur(40.dp)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(Color(0xFF4FC3F7).copy(alpha = 0.5f), Color(0xFF7C4DFF).copy(alpha = 0.5f))
-                            ),
-                            RoundedCornerShape(24.dp)
-                        )
-                )
-
-                // The Card
+                // The Card (Black background, low alpha)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color.Black.copy(alpha = 0.45f)) // dark frosted glass
-                        .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
+                        .background(Color.Black.copy(alpha = 0.2f)) // dark background card with less alpha
+                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
                         .padding(20.dp)
                 ) {
                     // Header
@@ -138,7 +106,7 @@ fun CustomLandingPage(
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.weight(1f))
-                        // Eye cross icon placeholder (using list icon or close for now)
+                        // Eye cross icon placeholder
                         Icon(
                             painter = painterResource(id = R.drawable.ic_close),
                             contentDescription = "Hide",
@@ -163,32 +131,33 @@ fun CustomLandingPage(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Shortcuts Row
+            // Shortcuts Row (User search sites / most visited)
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(shortcuts) { shortcut ->
+                items(displaySites) { site ->
+                    val initial = site.firstOrNull()?.uppercase() ?: "?"
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.4f))
+                                .background(Color.Black.copy(alpha = 0.3f))
                                 .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape)
-                                .clickable { },
+                                .clickable { onHistoryItemClick(site) },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = shortcut.name.first().toString(),
-                                color = shortcut.color.takeIf { it != Color.Black } ?: Color.White,
+                                text = initial,
+                                color = Color.White,
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = shortcut.name,
+                            text = site.take(10) + if (site.length > 10) "..." else "",
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 11.sp
                         )

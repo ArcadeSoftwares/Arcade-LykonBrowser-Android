@@ -121,27 +121,29 @@ fun BrowserScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .nestedScroll(nestedScrollConnection)
         ) {
-            // Top Bar Area — AddressBar (only show on actual websites)
-            if (currentUrl != "about:home") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 10.dp, vertical = 8.dp)
-                ) {
-                    AddressBar(
-                        url = currentUrl,
-                        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        textColor = MaterialTheme.colorScheme.onSurface,
-                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        shape = RoundedCornerShape(12.dp),
-                        height = 40.dp,
-                        onClick = { showSearchOverlay = true },
-                        onSecurityClick = { activeSheet = BottomSheetType.SECURITY },
-                        onShieldClick = { activeSheet = BottomSheetType.SHIELD },
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+            // Top Bar Area — AddressBar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            ) {
+                AddressBar(
+                    url = if (currentUrl == "about:home") "" else currentUrl,
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                    textColor = MaterialTheme.colorScheme.onSurface,
+                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    shape = RoundedCornerShape(12.dp),
+                    height = 40.dp,
+                    onClick = { showSearchOverlay = true },
+                    onSecurityClick = { 
+                        if (currentUrl != "about:home" && currentUrl.isNotEmpty()) {
+                            activeSheet = BottomSheetType.SECURITY 
+                        }
+                    },
+                    onShieldClick = { activeSheet = BottomSheetType.SHIELD },
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
             
             // Gradient Loader
@@ -174,8 +176,8 @@ fun BrowserScreen(
             Box(modifier = Modifier.weight(1f)) {
                 if (currentUrl == "about:home") {
                     CustomLandingPage(
-                        onSearchClick = { showSearchOverlay = true },
-                        onShieldClick = { activeSheet = BottomSheetType.SHIELD }
+                        searchHistory = searchHistory,
+                        onHistoryItemClick = { query -> viewModel.loadUrl(session, query) }
                     )
                 } else if (pageError) {
                     CustomErrorPage(
