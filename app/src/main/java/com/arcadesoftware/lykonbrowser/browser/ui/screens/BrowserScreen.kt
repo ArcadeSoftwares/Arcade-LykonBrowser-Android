@@ -82,8 +82,10 @@ fun BrowserScreen(
     viewModel: BrowserViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val session = remember { GeckoSessionManager.createSession(context) }
-    
+    val browserMode by viewModel.browserMode.collectAsState()
+    val session = remember(browserMode) { 
+        GeckoSessionManager.createSession(context, browserMode) 
+    }
     val currentUrl by viewModel.currentUrl.collectAsState()
     val canGoBack by viewModel.canGoBack.collectAsState()
     val canGoForward by viewModel.canGoForward.collectAsState()
