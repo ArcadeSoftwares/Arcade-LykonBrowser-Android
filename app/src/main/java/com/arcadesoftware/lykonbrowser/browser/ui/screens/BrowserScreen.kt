@@ -234,8 +234,8 @@ fun BrowserScreen(
             currentMode = browserMode,
             onModeSwitch = { newMode ->
                 if (newMode != browserMode) {
-                    if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
-                        viewModel.setBrowserMode(newMode)
+                    viewModel.setBrowserMode(newMode)
+                    if (newMode != com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
                         val intentClass = if (newMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) 
                             com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java 
                         else 
@@ -243,8 +243,6 @@ fun BrowserScreen(
                             
                         val intent = android.content.Intent(context, intentClass)
                         if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
-                    } else {
-                        pendingMode = newMode
                     }
                 }
             },
@@ -254,6 +252,18 @@ fun BrowserScreen(
                 showTabManager = false
             }
         )
+    }
+
+    // Handle Screenshots (FLAG_SECURE) for Private Mode
+    LaunchedEffect(browserMode) {
+        val activity = context as? android.app.Activity
+        if (activity != null) {
+            if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
+                activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+            } else {
+                activity.window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+            }
+        }
     }
 
     if (pendingMode != null) {
