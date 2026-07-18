@@ -25,6 +25,7 @@ import com.arcadesoftware.lykonbrowser.browser.state.BrowserMode
 fun TabManagerOverlay(
     visible: Boolean,
     currentMode: BrowserMode,
+    tabs: List<String>,
     onModeSwitch: (BrowserMode) -> Unit,
     onClose: () -> Unit,
     onNewTab: () -> Unit
@@ -115,13 +116,6 @@ fun TabManagerOverlay(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Active Tab Card Grid (Chrome-style previews)
-            // Mocking a few tabs to show how it looks since we don't have multi-GeckoSession support fully hooked up yet
-            val tabs = listOf(
-                "Current Session" to (if (currentMode == BrowserMode.PRIVATE) Color(0xFF1E1E2E) else if (currentMode == BrowserMode.TOR) Color(0xFF2A1C3D) else MaterialTheme.colorScheme.surfaceVariant),
-                "Google Search" to MaterialTheme.colorScheme.surfaceVariant,
-                "News Article" to MaterialTheme.colorScheme.surfaceVariant
-            )
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -129,15 +123,17 @@ fun TabManagerOverlay(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(if (currentMode == BrowserMode.NORMAL) 3 else 1) { index ->
-                    val (title, bgColor) = tabs[index]
+                items(tabs.size) { index ->
+                    val title = if (tabs[index] == "about:home" || tabs[index].isEmpty()) "New Tab" else tabs[index]
+                    val bgColor = if (currentMode == BrowserMode.PRIVATE) Color(0xFF1E1E2E) else if (currentMode == BrowserMode.TOR) Color(0xFF2A1C3D) else MaterialTheme.colorScheme.surfaceVariant
+                    
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(0.7f)
                             .clip(RoundedCornerShape(20.dp))
                             .background(bgColor)
-                            .clickable { onClose() } // clicking any tab returns to session for now
+                            .clickable { onClose() }
                     ) {
                         Column(modifier = Modifier.fillMaxSize()) {
                             // Top Bar of the Tab Preview
@@ -155,7 +151,15 @@ fun TabManagerOverlay(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text(title, color = onSurfaceColor, fontWeight = FontWeight.Medium, fontSize = 12.sp, maxLines = 1, modifier = Modifier.weight(1f))
+                                Text(
+                                    text = title, 
+                                    color = onSurfaceColor, 
+                                    fontWeight = FontWeight.Medium, 
+                                    fontSize = 12.sp, 
+                                    maxLines = 1, 
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
                                 Icon(
                                     painterResource(id = R.drawable.ic_close), 
                                     contentDescription = "Close Tab", 

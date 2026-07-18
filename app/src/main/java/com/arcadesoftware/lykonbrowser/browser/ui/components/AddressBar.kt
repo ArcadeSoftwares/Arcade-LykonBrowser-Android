@@ -40,6 +40,7 @@ fun AddressBar(
     onClick: () -> Unit,
     onSecurityClick: () -> Unit,
     onShieldClick: () -> Unit,
+    onRefreshClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isHttps = url.startsWith("https://")
@@ -117,5 +118,17 @@ fun AddressBar(
                 .size(18.dp)
                 .clickable { onShieldClick() }
         )
+        
+        if (url.isNotEmpty() && url != "about:home") {
+            Spacer(modifier = Modifier.width(12.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.ic_refresh),
+                contentDescription = "Refresh",
+                tint = iconColor,
+                modifier = Modifier
+                    .size(18.dp)
+                    .clickable { onRefreshClick() }
+            )
+        }
     }
 }

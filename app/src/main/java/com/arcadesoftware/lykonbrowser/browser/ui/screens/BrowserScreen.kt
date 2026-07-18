@@ -158,6 +158,7 @@ fun BrowserScreen(
                         }
                     },
                     onShieldClick = { activeSheet = BottomSheetType.SHIELD },
+                    onRefreshClick = { session.reload() },
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -232,6 +233,7 @@ fun BrowserScreen(
         com.arcadesoftware.lykonbrowser.browser.ui.components.TabManagerOverlay(
             visible = showTabManager,
             currentMode = browserMode,
+            tabs = listOf(currentUrl),
             onModeSwitch = { newMode ->
                 if (newMode != browserMode) {
                     viewModel.setBrowserMode(newMode)
