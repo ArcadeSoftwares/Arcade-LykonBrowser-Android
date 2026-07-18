@@ -22,6 +22,10 @@ class BrowserViewModel : ViewModel() {
     private val _openTabCount = MutableStateFlow(1)
     val openTabCount: StateFlow<Int> = _openTabCount.asStateFlow()
 
+    // Search history for the overlay suggestions
+    private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
+    val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
+
     val navigationDelegate = object : GeckoSession.NavigationDelegate {
         override fun onLocationChange(session: GeckoSession, url: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>) {
             url?.let { 
@@ -64,7 +68,23 @@ class BrowserViewModel : ViewModel() {
             url.contains(".") && !url.contains(" ") -> "https://$url"
             else -> "https://search.brave.com/search?q=${java.net.URLEncoder.encode(url, "UTF-8")}"
         }
+        // Add to search history (avoid duplicates, keep most recent first)
+        addToHistory(url)
         session.loadUri(finalUrl)
+    }
+
+    private fun addToHistory(query: String) {
+        val current = _searchHistory.value.toMutableList()
+        current.remove(query) // Remove duplicate if exists
+        current.add(0, query) // Add to front
+        if (current.size > 50) {
+            current.removeAt(current.lastIndex) // Keep max 50 entries
+        }
+        _searchHistory.value = current
+    }
+
+    fun removeFromHistory(query: String) {
+        _searchHistory.value = _searchHistory.value.filter { it != query }
     }
     
     fun goBack(session: GeckoSession) {

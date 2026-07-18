@@ -1,9 +1,11 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="200dp"
-    android:height="40dp"
-    android:viewportWidth="200"
-    android:viewportHeight="40">
-    <path
-        android:fillColor="#888888"
-        android:pathData="M10,20 h180 v5 h-180 z" />
-</vector>
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="ArcadeSoftware"
+    android:textSize="32sp"
+    android:textStyle="bold"
+    android:textColor="#FFFFFF"
+    android:fontFamily="sans-serif-medium"
+    android:letterSpacing="-0.03"
+    android:gravity="center"/>

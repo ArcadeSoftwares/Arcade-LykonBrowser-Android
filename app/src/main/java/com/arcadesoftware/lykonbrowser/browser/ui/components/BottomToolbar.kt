@@ -5,36 +5,35 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.arcadesoftware.lykonbrowser.R
 
+/**
+ * Bottom navigation toolbar.
+ * Layout: Home | Bookmark | New Tab (+) | All Tabs | More (3 dots)
+ * All icons are XML drawables from res/drawable for easy customization.
+ */
 @Composable
 fun BottomToolbar(
     backgroundColor: Color,
     iconColor: Color,
     height: Dp,
     tabCount: Int,
-    canGoBack: Boolean = false,
-    canGoForward: Boolean = false,
-    onBackClick: () -> Unit = {},
-    onForwardClick: () -> Unit = {},
     onHomeClick: () -> Unit,
-    onBookmarksClick: () -> Unit,
+    onBookmarkClick: () -> Unit,
+    onNewTabClick: () -> Unit,
     onTabsClick: () -> Unit,
-    onMenuClick: () -> Unit,
+    onMoreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -45,25 +44,34 @@ fun BottomToolbar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Back navigation
-        IconButton(onClick = onBackClick, enabled = canGoBack) {
-            Icon(
-                Icons.Filled.KeyboardArrowLeft,
-                contentDescription = "Back",
-                tint = if (canGoBack) iconColor else iconColor.copy(alpha = 0.35f)
-            )
-        }
-        // Forward navigation
-        IconButton(onClick = onForwardClick, enabled = canGoForward) {
-            Icon(
-                Icons.Filled.KeyboardArrowRight,
-                contentDescription = "Forward",
-                tint = if (canGoForward) iconColor else iconColor.copy(alpha = 0.35f)
-            )
-        }
+        // Home
         IconButton(onClick = onHomeClick) {
-            Icon(Icons.Outlined.Home, contentDescription = "Home", tint = iconColor)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_home),
+                contentDescription = "Home",
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
         }
+        // Bookmark
+        IconButton(onClick = onBookmarkClick) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_bookmark),
+                contentDescription = "Bookmarks",
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        // New Tab (center, add icon)
+        IconButton(onClick = onNewTabClick) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_new_tab),
+                contentDescription = "New Tab",
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        // All Tabs (with counter badge)
         IconButton(onClick = onTabsClick) {
             TabCounterBadge(
                 count = tabCount,
@@ -74,8 +82,14 @@ fun BottomToolbar(
                 fontSize = 12.sp
             )
         }
-        IconButton(onClick = onMenuClick) {
-            Icon(Icons.Outlined.Menu, contentDescription = "Menu", tint = iconColor)
+        // More / Settings (3 vertical dots)
+        IconButton(onClick = onMoreClick) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_more),
+                contentDescription = "More options",
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
