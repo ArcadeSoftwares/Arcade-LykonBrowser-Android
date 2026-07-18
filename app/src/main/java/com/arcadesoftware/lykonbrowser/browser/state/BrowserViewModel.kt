@@ -98,16 +98,9 @@ class BrowserViewModel : ViewModel() {
         // Add to search history (avoid duplicates, keep most recent first)
         addToHistory(url)
         
-        // CRITICAL FIX: Update currentUrl immediately so Compose attaches the GeckoViewContainer.
-        // If we don't do this, GeckoView remains detached when on about:home and ignores loadUri.
+        // CRITICAL FIX: Update currentUrl immediately so Compose state updates
         _currentUrl.value = finalUrl
-        
-        // Give Compose a brief moment to inflate and attach the GeckoView before loading the URI.
-        // This prevents the 'black screen' bug when navigating from home to a website.
-        viewModelScope.launch {
-            kotlinx.coroutines.delay(50)
-            session.loadUri(finalUrl)
-        }
+        session.loadUri(finalUrl)
     }
 
     private fun addToHistory(query: String) {

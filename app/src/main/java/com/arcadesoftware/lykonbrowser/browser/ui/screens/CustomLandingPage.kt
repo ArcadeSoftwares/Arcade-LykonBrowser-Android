@@ -46,7 +46,9 @@ fun CustomLandingPage(
     
     // Extract domains/queries from history, or use fallback
     val displaySites = remember(searchHistory) {
-        val sites = searchHistory.map { 
+        val sites = searchHistory.filter { 
+            it.contains(".") && !it.contains(" ") // Only show valid websites
+        }.map { 
             it.removePrefix("https://").removePrefix("http://").removePrefix("www.").substringBefore("/")
         }.distinct().take(8)
         

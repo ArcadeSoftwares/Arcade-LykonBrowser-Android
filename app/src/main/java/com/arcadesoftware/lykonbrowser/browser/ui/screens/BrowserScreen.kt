@@ -50,6 +50,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -174,6 +175,27 @@ fun BrowserScreen(
             
             // Content Area
             Box(modifier = Modifier.weight(1f)) {
+                // Keep GeckoView in the tree at all times so it never detaches, preventing the black screen bug.
+                // We move it off-screen and make it transparent when on the homescreen.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            if (currentUrl == "about:home") {
+                                alpha = 0f
+                                translationX = 10000f
+                            } else {
+                                alpha = 1f
+                                translationX = 0f
+                            }
+                        }
+                ) {
+                    GeckoViewContainer(
+                        session = session,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
                 if (currentUrl == "about:home") {
                     CustomLandingPage(
                         searchHistory = searchHistory,
@@ -183,11 +205,6 @@ fun BrowserScreen(
                     CustomErrorPage(
                         url = currentUrl,
                         onRetry = { viewModel.loadUrl(session, currentUrl) }
-                    )
-                } else {
-                    GeckoViewContainer(
-                        session = session,
-                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
@@ -258,15 +275,6 @@ fun BrowserScreen(
                     }
                     BottomSheetType.SECURITY -> {
                         val isSecure = currentUrl.startsWith("https://")
-                        val infiniteTransition = rememberInfiniteTransition()
-                        val scale by infiniteTransition.animateFloat(
-                            initialValue = 1f,
-                            targetValue = 1.2f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(1200, easing = LinearEasing),
-                                repeatMode = RepeatMode.Reverse
-                            )
-                        )
                         val iconColor = if (isSecure) Color(0xFF00E676) else Color(0xFFFF3D00)
                         
                         Column(
@@ -275,18 +283,13 @@ fun BrowserScreen(
                                 .padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                // Glowing pulsing ring
-                                Box(
-                                    modifier = Modifier
-                                        .size(80.dp * scale)
-                                        .background(iconColor.copy(alpha = 0.15f), androidx.compose.foundation.shape.CircleShape)
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .size(60.dp)
-                                        .background(iconColor.copy(alpha = 0.25f), androidx.compose.foundation.shape.CircleShape)
-                                )
+                            // Professional static icon circle (lightweight, zero lag)
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .background(iconColor.copy(alpha = 0.15f), androidx.compose.foundation.shape.CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Icon(
                                     imageVector = if (isSecure) Icons.Filled.Lock else Icons.Filled.Warning,
                                     contentDescription = null,
