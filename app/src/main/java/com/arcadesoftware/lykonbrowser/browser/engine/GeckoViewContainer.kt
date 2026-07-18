@@ -13,12 +13,26 @@ fun GeckoViewContainer(
 ) {
     AndroidView(
         factory = { context ->
-            GeckoView(context).apply {
+            val swipeRefreshLayout = androidx.swiperefreshlayout.widget.SwipeRefreshLayout(context)
+            val geckoView = GeckoView(context).apply {
                 setSession(session)
             }
+            swipeRefreshLayout.addView(geckoView)
+            
+            swipeRefreshLayout.setOnRefreshListener {
+                session.reload()
+                // Stop the refreshing animation after a short delay or state callback, 
+                // but since GeckoView doesn't easily expose page load end immediately in a simple callback here,
+                // we'll just stop the animation after 1 second as a simple UI feedback.
+                swipeRefreshLayout.postDelayed({
+                    swipeRefreshLayout.isRefreshing = false
+                }, 1000)
+            }
+            swipeRefreshLayout
         },
         modifier = modifier,
-        update = { view ->
+        update = { swipeRefreshLayout ->
+            val view = swipeRefreshLayout.getChildAt(0) as GeckoView
             if (view.session != session) {
                 view.setSession(session)
             }

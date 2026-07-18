@@ -185,10 +185,8 @@ fun BrowserScreen(
                         .fillMaxSize()
                         .graphicsLayer {
                             if (currentUrl == "about:home") {
-                                alpha = 0f
                                 translationX = 10000f
                             } else {
-                                alpha = 1f
                                 translationX = 0f
                             }
                         }
@@ -255,8 +253,11 @@ fun BrowserScreen(
                     BottomSheetType.SETTINGS -> {
                         SettingsDrawerContent()
                     }
-                    BottomSheetType.SECURITY, BottomSheetType.SHIELD -> {
+                    BottomSheetType.SECURITY -> {
                         SecurityDrawerContent(currentUrl)
+                    }
+                    BottomSheetType.SHIELD -> {
+                        ShieldDrawerContent()
                     }
                     BottomSheetType.NONE -> {}
                 }
@@ -266,13 +267,33 @@ fun BrowserScreen(
 }
 
 @Composable
-private fun SettingsDrawerContent() {
+private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
         // Banner
+        if (!isDefaultBrowser) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .clickable { }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Make Lykon your default", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(Modifier.height(4.dp))
+                    Text("Fast, private, and made for you.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+        
+        // Private Window
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -281,16 +302,13 @@ private fun SettingsDrawerContent() {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Make Lykon your default", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(Modifier.height(4.dp))
-                Text("Fast, private, and made for you.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Icon(Icons.Filled.Done, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_private), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
+            Spacer(Modifier.width(16.dp))
+            Text("Private window", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
         }
         Spacer(Modifier.height(12.dp))
-        
-        // Extensions
+
+        // Tor Window
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -299,9 +317,9 @@ private fun SettingsDrawerContent() {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
+            Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_tor), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
             Spacer(Modifier.width(16.dp))
-            Text("Extensions", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Text("Tor window", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
         }
         Spacer(Modifier.height(12.dp))
         
@@ -310,28 +328,10 @@ private fun SettingsDrawerContent() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SettingsGridItem(Icons.Filled.List, "History", Modifier.weight(1f))
-            SettingsGridItem(Icons.Filled.Favorite, "Bookmarks", Modifier.weight(1f))
-            SettingsGridItem(Icons.Filled.KeyboardArrowDown, "Downloads", Modifier.weight(1f))
-            SettingsGridItem(Icons.Filled.Lock, "Passwords", Modifier.weight(1f))
-        }
-        Spacer(Modifier.height(12.dp))
-        
-        // Sign in
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                .clickable { }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text("Sign in", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                Text("Synchronise passwords, bookmarks and more", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            SettingsGridItem(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_history), "History", Modifier.weight(1f))
+            SettingsGridItem(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_bookmark), "Bookmarks", Modifier.weight(1f))
+            SettingsGridItem(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_downloads), "Downloads", Modifier.weight(1f))
+            SettingsGridItem(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_passwords), "Passwords", Modifier.weight(1f))
         }
         Spacer(Modifier.height(12.dp))
         
@@ -344,7 +344,7 @@ private fun SettingsDrawerContent() {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+            Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_settings), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.width(16.dp))
             Text("Settings", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
         }
@@ -352,7 +352,7 @@ private fun SettingsDrawerContent() {
 }
 
 @Composable
-private fun SettingsGridItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier) {
+private fun SettingsGridItem(icon: androidx.compose.ui.graphics.painter.Painter, label: String, modifier: Modifier) {
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
@@ -440,6 +440,55 @@ private fun SecurityDrawerRow(icon: androidx.compose.ui.graphics.vector.ImageVec
         }
     }
     Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun ShieldDrawerContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(32.dp))
+            }
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text("Lykon Shield", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.height(4.dp))
+                Text("Blocking ads, trackers, and malicious scripts.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 18.sp)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+
+        // Shield Status
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Shields are UP", color = Color(0xFF00E676), fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+                Spacer(Modifier.height(4.dp))
+                Text("You are protected on this site.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            androidx.compose.material3.Switch(checked = true, onCheckedChange = {})
+        }
+        Spacer(Modifier.height(16.dp))
+        
+        SecurityDrawerRow(Icons.Filled.Done, "0 Ads & Trackers Blocked")
+        SecurityDrawerRow(Icons.Filled.Done, "Connections upgraded to HTTPS")
+        
+        Spacer(Modifier.height(8.dp))
+        Text("Advanced Shield Settings", color = Color(0xFFB388FF), fontSize = 14.sp, modifier = Modifier.padding(horizontal = 8.dp).clickable { })
+        Spacer(Modifier.height(16.dp))
+    }
 }
 
 @Composable
