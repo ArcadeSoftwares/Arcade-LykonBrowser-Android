@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.WebRequestError
 import org.mozilla.geckoview.GeckoResult
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 class BrowserViewModel : ViewModel() {
     private val _currentUrl = MutableStateFlow("about:home")
@@ -99,7 +102,12 @@ class BrowserViewModel : ViewModel() {
         // If we don't do this, GeckoView remains detached when on about:home and ignores loadUri.
         _currentUrl.value = finalUrl
         
-        session.loadUri(finalUrl)
+        // Give Compose a brief moment to inflate and attach the GeckoView before loading the URI.
+        // This prevents the 'black screen' bug when navigating from home to a website.
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(50)
+            session.loadUri(finalUrl)
+        }
     }
 
     private fun addToHistory(query: String) {

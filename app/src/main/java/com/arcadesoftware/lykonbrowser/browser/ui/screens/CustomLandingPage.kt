@@ -78,12 +78,12 @@ fun CustomLandingPage(
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // The Card (Black background, low alpha)
+                // The Card (Black background, higher alpha)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color.Black.copy(alpha = 0.2f)) // dark background card with less alpha
+                        .background(Color.Black.copy(alpha = 0.5f)) // increased alpha
                         .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
                         .padding(20.dp)
                 ) {
@@ -137,7 +137,6 @@ fun CustomLandingPage(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(displaySites) { site ->
-                    val initial = site.firstOrNull()?.uppercase() ?: "?"
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
                             modifier = Modifier
@@ -148,11 +147,11 @@ fun CustomLandingPage(
                                 .clickable { onHistoryItemClick(site) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = initial,
-                                color = Color.White,
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold
+                            AsyncImage(
+                                model = "https://www.google.com/s2/favicons?domain=${site}&sz=128",
+                                contentDescription = site,
+                                modifier = Modifier.size(28.dp),
+                                contentScale = ContentScale.Fit
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
