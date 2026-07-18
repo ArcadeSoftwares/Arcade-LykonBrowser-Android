@@ -293,33 +293,36 @@ private fun SettingsDrawerContent(isDefaultBrowser: Boolean = false) {
             Spacer(Modifier.height(12.dp))
         }
         
-        // Private Window
+        // Private & Tor Windows (Side by Side)
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                .clickable { }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_private), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
-            Spacer(Modifier.width(16.dp))
-            Text("Private window", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-        }
-        Spacer(Modifier.height(12.dp))
-
-        // Tor Window
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                .clickable { }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_tor), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
-            Spacer(Modifier.width(16.dp))
-            Text("Tor window", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .clickable { }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_private), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
+                Spacer(Modifier.width(8.dp))
+                Text("Private", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+            }
+            
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .clickable { }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_tor), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) 
+                Spacer(Modifier.width(8.dp))
+                Text("Tor", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+            }
         }
         Spacer(Modifier.height(12.dp))
         
@@ -374,72 +377,44 @@ private fun SecurityDrawerContent(currentUrl: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header banner
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(32.dp))
-            }
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text("Lykon is on guard", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(Modifier.height(4.dp))
-                Text("You're protected. If we spot something, we'll let you know.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 18.sp)
-            }
-        }
+        Icon(
+            imageVector = if (isSecure) Icons.Filled.Lock else Icons.Filled.Warning,
+            contentDescription = null,
+            tint = if (isSecure) Color(0xFF00E676) else Color(0xFFFF5252),
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = domain.ifEmpty { "Website" },
+            fontSize = 20.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = if (isSecure) "Connection is secure" else "Connection is not secure",
+            fontSize = 14.sp,
+            color = if (isSecure) Color(0xFF00E676) else Color(0xFFFF5252)
+        )
         Spacer(Modifier.height(24.dp))
         
-        // Protection toggle
+        // Single simple row for cookies
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .clickable { }
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Enhanced Tracking Protection", color = Color(0xFFB388FF), fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
-                Spacer(Modifier.height(4.dp))
-                Text("If something looks broken on this site, try turning it off.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            androidx.compose.material3.Switch(checked = true, onCheckedChange = {})
-        }
-        Spacer(Modifier.height(16.dp))
-        
-        SecurityDrawerRow(Icons.Filled.Done, "No trackers found")
-        SecurityDrawerRow(if (isSecure) Icons.Filled.Lock else Icons.Filled.Warning, if (isSecure) "Secure connection" else "Connection not secure", if (isSecure) "Verified by Let's Encrypt" else null)
-        SecurityDrawerRow(Icons.Filled.Delete, "Clear cookies and site data")
-        
-        Spacer(Modifier.height(8.dp))
-        Text("Privacy Settings", color = Color(0xFFB388FF), fontSize = 14.sp, modifier = Modifier.padding(horizontal = 8.dp).clickable { })
-        Spacer(Modifier.height(16.dp))
-    }
-}
-
-@Composable
-private fun SecurityDrawerRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String? = null) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-            .clickable { }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
-        Spacer(Modifier.width(16.dp))
-        Column {
-            Text(title, color = MaterialTheme.colorScheme.onSurface, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
-            if (subtitle != null) {
-                Text(subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.width(16.dp))
+            Text("Clear cookies and site data", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
         }
     }
-    Spacer(Modifier.height(8.dp))
 }
 
 @Composable
@@ -451,19 +426,57 @@ private fun ShieldDrawerContent() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp)),
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        Brush.linearGradient(listOf(Color(0xFF6200EA), Color(0xFFB388FF))),
+                        RoundedCornerShape(16.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(32.dp))
+                Icon(androidx.compose.ui.res.painterResource(com.arcadesoftware.lykonbrowser.R.drawable.ic_shield), contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
             }
             Spacer(Modifier.width(16.dp))
             Column {
-                Text("Lykon Shield", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text("Lykon Shield", fontSize = 22.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(4.dp))
-                Text("Blocking ads, trackers, and malicious scripts.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 18.sp)
+                Text("Your privacy is protected.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         Spacer(Modifier.height(24.dp))
+
+        // Creative Dummy Stats
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Trackers stat
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("42", fontSize = 28.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = Color(0xFFFF5252))
+                Spacer(Modifier.height(4.dp))
+                Text("Trackers Blocked", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
+            
+            // Ads stat
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("12", fontSize = 28.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = Color(0xFFFFB300))
+                Spacer(Modifier.height(4.dp))
+                Text("Ads Blocked", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
+        }
+        Spacer(Modifier.height(16.dp))
 
         // Shield Status
         Row(
@@ -476,17 +489,25 @@ private fun ShieldDrawerContent() {
             Column(modifier = Modifier.weight(1f)) {
                 Text("Shields are UP", color = Color(0xFF00E676), fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
                 Spacer(Modifier.height(4.dp))
-                Text("You are protected on this site.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Active on this site", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             androidx.compose.material3.Switch(checked = true, onCheckedChange = {})
         }
         Spacer(Modifier.height(16.dp))
         
-        SecurityDrawerRow(Icons.Filled.Done, "0 Ads & Trackers Blocked")
-        SecurityDrawerRow(Icons.Filled.Done, "Connections upgraded to HTTPS")
-        
-        Spacer(Modifier.height(8.dp))
-        Text("Advanced Shield Settings", color = Color(0xFFB388FF), fontSize = 14.sp, modifier = Modifier.padding(horizontal = 8.dp).clickable { })
+        // Advanced Option
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                .clickable { }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+            Spacer(Modifier.width(16.dp))
+            Text("Advanced Shield Options", fontWeight = androidx.compose.ui.text.font.FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+        }
         Spacer(Modifier.height(16.dp))
     }
 }
