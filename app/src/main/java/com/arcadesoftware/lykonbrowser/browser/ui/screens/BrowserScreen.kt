@@ -96,6 +96,8 @@ fun BrowserScreen(
 
     var activeSheet by remember { mutableStateOf(BottomSheetType.NONE) }
     var showSearchOverlay by remember { mutableStateOf(false) }
+    var showTabManager by remember { mutableStateOf(false) }
+    var pendingMode by remember { mutableStateOf<com.arcadesoftware.lykonbrowser.browser.state.BrowserMode?>(null) }
 
     val bottomBarHeight = 48.dp
     val bottomBarHeightPx = with(LocalDensity.current) { bottomBarHeight.roundToPx().toFloat() }
@@ -152,51 +154,25 @@ fun BrowserScreen(
                 )
             }
             
-            // Gradient Loader
-            if (isLoading) {
-                val infiniteTransition = rememberInfiniteTransition(label = "loader")
-                val offset by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 1000f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
-                    ),
-                    label = "loader_offset"
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(2.dp)
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF00FFFF), Color(0xFF8A2BE2), Color(0xFFFF00FF), Color(0xFF00FFFF)),
-                                startX = offset - 1000f,
-                                endX = offset
-                            )
-                        )
-                )
-            }
-            
-            // Content Area
-            Box(modifier = Modifier.weight(1f)) {
-                // Keep GeckoView in the tree at all times so it never detaches, preventing the black screen bug.
-                // We move it off-screen and make it transparent when on the homescreen.
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            if (currentUrl == "about:home") {
-                                translationX = 10000f
-                            } else {
-                                translationX = 0f
-                            }
+            Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+
+            // Web Content Area
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                // Keep GeckoView in the tree but hide it if not on a web page
+                Box(modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (currentUrl != "about:home" && !pageError) 1f else 0f }) {
+                    GeckoViewContainer(session = session, modifier = Modifier.fillMaxSize())
+                    
+                    // Loading overlay
+                    if (isLoading) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                            androidx.compose.material3.LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                         }
-                ) {
-                    GeckoViewContainer(
-                        session = session,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    }
                 }
 
                 if (currentUrl == "about:home") {
@@ -226,19 +202,7 @@ fun BrowserScreen(
                 onHomeClick = { viewModel.loadUrl(session, "about:home") },
                 onBookmarkClick = { /* Handle bookmarks click */ },
                 onNewTabClick = { /* Handle new tab */ },
-                onTabsClick = { 
-                    if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
-                        viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)
-                        val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
-                        if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
-                    } else {
-                        // Switch back to normal and wipe isolated session
-                        val restartIntent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.MainActivity::class.java).apply {
-                            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        }
-                        context.startActivity(restartIntent)
-                    }
-                },
+                onTabsClick = { showTabManager = true },
                 onMoreClick = { activeSheet = BottomSheetType.SETTINGS }
             )
         }
@@ -255,9 +219,35 @@ fun BrowserScreen(
             onDismiss = { showSearchOverlay = false },
             onRemoveHistoryItem = { viewModel.removeFromHistory(it) }
         )
+
+        // Tab Manager Overlay
+        com.arcadesoftware.lykonbrowser.browser.ui.components.TabManagerOverlay(
+            visible = showTabManager,
+            currentMode = browserMode,
+            onModeSwitch = { newMode ->
+                if (newMode != browserMode) {
+                    if (browserMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
+                        viewModel.setBrowserMode(newMode)
+                        val intentClass = if (newMode == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) 
+                            com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java 
+                        else 
+                            com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService::class.java
+                            
+                        val intent = android.content.Intent(context, intentClass)
+                        if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                    } else {
+                        pendingMode = newMode
+                    }
+                }
+            },
+            onClose = { showTabManager = false },
+            onNewTab = { 
+                viewModel.loadUrl(session, "about:home")
+                showTabManager = false
+            }
+        )
     }
 
-    var pendingMode by remember { mutableStateOf<com.arcadesoftware.lykonbrowser.browser.state.BrowserMode?>(null) }
     if (pendingMode != null) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { pendingMode = null },
@@ -267,16 +257,22 @@ fun BrowserScreen(
                 androidx.compose.material3.TextButton(onClick = {
                     val modeToSet = pendingMode!!
                     pendingMode = null
-                    viewModel.setBrowserMode(modeToSet)
-                    
-                    if (modeToSet == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
-                        val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
-                        if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
-                    } else if (modeToSet == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) {
-                        val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService::class.java)
-                        if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                    if (modeToSet == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL) {
+                        val restartIntent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.MainActivity::class.java).apply {
+                            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        }
+                        context.startActivity(restartIntent)
+                    } else {
+                        viewModel.setBrowserMode(modeToSet)
+                        if (modeToSet == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE) {
+                            val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService::class.java)
+                            if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                        } else if (modeToSet == com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.TOR) {
+                            val intent = android.content.Intent(context, com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService::class.java)
+                            if (android.os.Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+                        }
+                        activeSheet = BottomSheetType.NONE
                     }
-                    activeSheet = BottomSheetType.NONE
                 }) {
                     Text("Close & Switch")
                 }
