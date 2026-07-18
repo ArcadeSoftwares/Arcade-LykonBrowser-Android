@@ -84,27 +84,42 @@ enum class BottomSheetType {
 @OptIn(ExperimentalMaterial3Api::class)
 data class TabData(val id: String, val session: GeckoSession, val url: String = "about:home")
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserScreen(
     modifier: Modifier = Modifier,
-    viewModel: BrowserViewModel = viewModel()
+    viewModel: BrowserViewModel = viewModel(),
+    intentActionState: kotlinx.coroutines.flow.StateFlow<String?>? = null
 ) {
-    val context = LocalContext.current
+    val context = androidx.compose.ui.platform.LocalContext.current
     val browserMode by viewModel.browserMode.collectAsState()
     
     val normalTabs = remember { androidx.compose.runtime.mutableStateListOf<TabData>() }
     val privateTabs = remember { androidx.compose.runtime.mutableStateListOf<TabData>() }
-    var activeNormalTabIndex by remember { mutableStateOf(0) }
-    var activePrivateTabIndex by remember { mutableStateOf(0) }
+    var activeNormalTabIndex by remember { androidx.compose.runtime.mutableStateOf(0) }
+    var activePrivateTabIndex by remember { androidx.compose.runtime.mutableStateOf(0) }
+    
+    // Handle notification intent actions
+    if (intentActionState != null) {
+        val intentAction by intentActionState.collectAsState()
+        androidx.compose.runtime.LaunchedEffect(intentAction) {
+            if (intentAction == com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService.ACTION_CLOSE_PRIVATE) {
+                // Clear private tabs completely and create a fresh one to be safe
+                privateTabs.clear()
+                privateTabs.add(TabData(java.util.UUID.randomUUID().toString(), com.arcadesoftware.lykonbrowser.browser.engine.GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)))
+                activePrivateTabIndex = 0
+                viewModel.setBrowserMode(com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL)
+            }
+        }
+    }
     
     // Initialize first tabs
-    LaunchedEffect(Unit) {
+    androidx.compose.runtime.LaunchedEffect(Unit) {
         if (normalTabs.isEmpty()) {
-            normalTabs.add(TabData(java.util.UUID.randomUUID().toString(), GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL)))
+            normalTabs.add(TabData(java.util.UUID.randomUUID().toString(), com.arcadesoftware.lykonbrowser.browser.engine.GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.NORMAL)))
         }
         if (privateTabs.isEmpty()) {
-            privateTabs.add(TabData(java.util.UUID.randomUUID().toString(), GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)))
+            privateTabs.add(TabData(java.util.UUID.randomUUID().toString(), com.arcadesoftware.lykonbrowser.browser.engine.GeckoSessionManager.createSession(context, com.arcadesoftware.lykonbrowser.browser.state.BrowserMode.PRIVATE)))
         }
     }
     

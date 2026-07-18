@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import com.arcadesoftware.lykonbrowser.browser.ui.screens.BrowserScreen
 import com.arcadesoftware.lykonbrowser.ui.theme.LykonbrowserTheme
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import kotlinx.coroutines.flow.asStateFlow
 
 class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
@@ -40,7 +41,8 @@ class MainActivity : ComponentActivity() {
             LykonbrowserTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     BrowserScreen(
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier.padding(innerPadding),
+                        intentActionState = intentAction
                     )
                 }
             }
@@ -52,17 +54,14 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
+    private val _intentAction = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val intentAction: kotlinx.coroutines.flow.StateFlow<String?> = _intentAction.asStateFlow()
+
     private fun handleIntent(intent: Intent?) {
         when (intent?.action) {
             com.arcadesoftware.lykonbrowser.browser.engine.PrivateNotificationService.ACTION_CLOSE_PRIVATE,
             com.arcadesoftware.lykonbrowser.browser.engine.TorNotificationService.ACTION_CLOSE_TOR -> {
-                // To properly reset state, we can broadcast an event or restart activity.
-                // A clean way is to restart the activity or clear the ViewModel state.
-                val restartIntent = Intent(this, MainActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                }
-                startActivity(restartIntent)
-                finish()
+                _intentAction.value = intent.action
             }
         }
     }
