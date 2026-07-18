@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.mozilla.geckoview.GeckoSession
+import org.mozilla.geckoview.WebRequestError
+import org.mozilla.geckoview.GeckoResult
 
 class BrowserViewModel : ViewModel() {
     private val _currentUrl = MutableStateFlow("about:home")
@@ -33,7 +35,7 @@ class BrowserViewModel : ViewModel() {
     val navigationDelegate = object : GeckoSession.NavigationDelegate {
         override fun onLocationChange(session: GeckoSession, url: String?, perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>) {
             url?.let { 
-                if (it != "about:blank") {
+                if (it != "about:blank" && !it.startsWith("data:")) {
                     _currentUrl.value = it 
                 }
             }
@@ -46,17 +48,28 @@ class BrowserViewModel : ViewModel() {
         override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
             _canGoForward.value = canGoForward
         }
+        
+        override fun onLoadError(session: GeckoSession, uri: String?, error: WebRequestError): GeckoResult<String>? {
+            _pageError.value = true
+            // Load a blank background so the GeckoView doesn't show its default error,
+            // allowing our Compose CustomErrorPage to render cleanly over it.
+            return GeckoResult.fromValue("data:text/html,<html><body style='background-color: #121212;'></body></html>")
+        }
     }
     
     val progressDelegate = object : GeckoSession.ProgressDelegate {
         override fun onPageStart(session: GeckoSession, url: String) {
             _isLoading.value = true
-            _pageError.value = false
+            if (!url.startsWith("data:")) {
+                _pageError.value = false
+            }
         }
 
         override fun onPageStop(session: GeckoSession, success: Boolean) {
             _isLoading.value = false
-            _pageError.value = !success
+            if (!success) {
+                _pageError.value = true
+            }
         }
     }
 
